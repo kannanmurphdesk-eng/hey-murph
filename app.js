@@ -26,10 +26,11 @@ function render(){
  if(cf.value)L=L.filter(i=>i.customer===cf.value);if(tf)L=L.filter(i=>i.tags.includes(tf));
  if(view==='overdue')L.sort((a,b)=>a.due<b.due?-1:1);else if(view==='done')L.sort((a,b)=>b.doneAt-a.doneAt);else L.sort((a,b)=>(b.top-a.top));
  const f=openIn('focus').length;$('#count').textContent=view==='focus'?`${f}/${CAP} open · ${openIn('focus').filter(i=>i.top).length}/${TOPCAP} top`:`${L.length} item(s)`;
+ $('#quote').style.display=view==='focus'?'':'none';
  $('#add').style.display=(view==='focus'||view==='cold')?'flex':'none';
- $('#list').innerHTML=L.map(i=>`<li class="${i.top?'top':''}" data-id="${i.id}"><button class="chk" data-a="done" aria-label="Done">${i.done?'↺':'○'}</button>
+ $('#list').innerHTML=L.map(i=>`<li class="${i.top?'top':''}" data-id="${i.id}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button>
  <div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}${i.customer?'👤 '+esc(i.customer)+' ':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}</span>`:''}${view!=='focus'&&view!=='cold'?' · '+(i.list==='focus'?'Focus':'Cold'):''}</div></div>
- ${i.done?'':`<button class="mv" data-a="move">${i.list==='focus'?'→ Cold':'→ Focus'}</button>`}</li>`).join('')||'<li class="m">Nothing here.</li>';
+ ${i.done?'':`<button class="mv" data-a="move">${i.list==='focus'?'→ Cold':'→ Focus'}</button>`}</li>`).join('')||'<li class="empty">Nothing here. Clear skies.</li>';
 }
 $('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.closest('li').dataset.id;
  if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else openEdit(id)});
@@ -66,6 +67,25 @@ $('#menu').addEventListener('close',()=>{const r=$('#menu').returnValue,d=today(
 $('#paste').addEventListener('close',()=>{if($('#paste').returnValue==='ok'){const n=parseMd($('#pasteText').value);n.length?merge(n):toast('No items found in Markdown.')}});
 $('#fileIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const d=JSON.parse(await f.text());const arr=Array.isArray(d)?d:d.items;if(!Array.isArray(arr))throw 0;
  if(!confirm(`Replace all current data with ${arr.length} items from backup?`))return;items=arr.map(x=>Object.assign(mk(x.title||'',x.list==='cold'?'cold':'focus',x),{id:x.id||uid(),created:x.created||Date.now(),doneAt:x.doneAt||null}));save();render();toast('Backup restored')}catch(_){toast('Not a valid Hey Murph backup.')}};
+const QUOTES=[
+"Calm isn't the absence of chaos — it's the presence of a system.",
+"A system with clarity on both the problem and the desired outcome has 80% solved its purpose.",
+"Don't try to optimize what you should eliminate. Before asking 'How can I do this faster?', ask 'Does this need to be done at all?'",
+"Daydreaming for applause is a trap; rehearsing for the real task is a tool.",
+"Uncertainty is inevitable — the only real control is the system you build to handle it.",
+"You can't stop things from going wrong, but you can build the sprinkler system before the fire.",
+"You're not lazy. You're not lost. You're just carrying too many open tabs in your head, and no one taught you how to close them.",
+"This book won't decide the path. It will give light so the aspirant can walk their own, with confidence and clarity.",
+"Yes, fatigue isn't the problem — the way I'm dealing with it is.",
+"Time is the most valuable resource we have.",
+"Most of the time, we are like the Roman Emperor Nero, we forget what is important and give importance to things that are not worth our attention."];
+let qi=(Math.floor(Date.now()/864e5)+Math.floor(Math.random()*QUOTES.length))%QUOTES.length;
+function showQuote(){const b=$('#qText');b.classList.remove('in');void b.offsetWidth;b.textContent=QUOTES[qi];b.classList.add('in')}
+function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote()}
+$('#quote').addEventListener('click',nextQuote);$('#quote').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();nextQuote()}});
+function greet(){const d=new Date(),h=d.getHours();$('#greet').textContent=(h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', sir';
+ $('#dateLine').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})}
+greet();showQuote();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 render();

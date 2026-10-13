@@ -1,14 +1,17 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Hey Murph</title><meta name="theme-color" content="#1f6feb">
+<title>Hey Murph</title><meta name="theme-color" content="#070b18">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Hey Murph"><link rel="stylesheet" href="style.css"></head><body>
-<header><h1>Hey Murph</h1><button id="menuBtn" aria-label="Menu">⋯</button></header>
-<nav id="tabs"><button data-v="focus" class="on">Focus</button><button data-v="cold">Cold</button><button data-v="overdue">Overdue</button><button data-v="done">Done</button></nav>
+<div class="bgfx" aria-hidden="true"></div><header><div><div id="greet" class="greet">Hello, sir</div><h1><span class="logo"></span>Hey Murph</h1><div id="dateLine" class="date"></div></div><button id="menuBtn" class="icon" aria-label="Menu">⋯</button></header>
+<main>
+<figure id="quote" role="button" tabindex="0" aria-label="Tesseract quote, tap for next"><div class="qk">The Tesseract</div><blockquote id="qText"></blockquote><figcaption>— Kannan Mohanan <span class="qn">tap for next ›</span></figcaption></figure>
 <div id="filters"><select id="custFilter"><option value="">All customers</option></select><select id="tagFilter"><option value="">All tags</option></select></div>
 <div id="count"></div><ul id="list"></ul>
+</main>
 <form id="add"><input id="addInput" placeholder="Quick add to current list…" autocomplete="off"><button>Add</button></form>
+<nav id="tabs"><button data-v="focus" class="on">Focus</button><button data-v="cold">Cold</button><button data-v="overdue">Overdue</button><button data-v="done">Done</button></nav>
 <div id="toast"></div>
 <dialog id="edit"><form method="dialog" id="editForm">
 <label>Title<input name="title" required></label>
