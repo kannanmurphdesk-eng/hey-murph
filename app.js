@@ -18,7 +18,7 @@ function move(id){const i=items.find(x=>x.id===id);if(i.list==='cold'){if(!canFo
 function toggleDone(id){const i=items.find(x=>x.id===id);if(i.done&&i.list==='focus'&&!canFocus())return;i.done=!i.done;i.doneAt=i.done?Date.now():null;if(i.done)i.top=false;save();render()}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function render(){
- const hv=view==='habits';$('#habits').hidden=!hv;['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(hv)renderHabits();
+ const hv=view==='habits'||view==='journal';$('#habits').hidden=view!=='habits';$('#journal').hidden=view!=='journal';if(view==='journal'&&window.renderJournal)renderJournal();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();
  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
  const cs=[...new Set(items.map(i=>i.customer).filter(Boolean))].sort(),cf=$('#custFilter'),cur=cf.value;
  cf.innerHTML='<option value="">All customers</option>'+cs.map(c=>`<option>${esc(c)}</option>`).join('');cf.value=cs.includes(cur)?cur:'';
@@ -36,7 +36,7 @@ function render(){
 }
 $('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.closest('li').dataset.id;
  if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else openEdit(id)});
-$('#tabs').addEventListener('click',e=>{if(e.target.dataset.v){view=e.target.dataset.v;render()}});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){view=b.dataset.v;render()}});
 $('#custFilter').onchange=$('#tagFilter').onchange=render;
 $('#tagFilter').innerHTML+=TAGS.map(t=>`<option>${t}</option>`).join('');
 $('#add').addEventListener('submit',e=>{e.preventDefault();if(add($('#addInput').value,view==='cold'?'cold':'focus'))$('#addInput').value=''});
@@ -91,11 +91,11 @@ async function share(name,text,type){const file=new File([text],name,{type});
 $('#menuBtn').onclick=()=>$('#menu').showModal();
 $('#menu').addEventListener('close',()=>{const r=$('#menu').returnValue,d=today();
  if(r==='md')share(`hey-murph-${d}.md`,toMd(),'text/markdown');
- if(r==='json')share(`hey-murph-backup-${d}.json`,JSON.stringify({app:'hey-murph',version:1,exported:new Date().toISOString(),items,habits:H},null,1),'application/json');
+ if(r==='json')share(`hey-murph-backup-${d}.json`,JSON.stringify({app:'hey-murph',version:1,exported:new Date().toISOString(),items,habits:H,journal:J},null,1),'application/json');
  if(r==='importJson')$('#fileIn').click();if(r==='importMd'){$('#pasteText').value='';$('#paste').showModal()}});
 $('#paste').addEventListener('close',()=>{if($('#paste').returnValue==='ok'){const n=parseMd($('#pasteText').value);n.length?merge(n):toast('No items found in Markdown.')}});
 $('#fileIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const d=JSON.parse(await f.text());const arr=Array.isArray(d)?d:d.items;if(!Array.isArray(arr))throw 0;
- if(!confirm(`Replace all current data with ${arr.length} items from backup?`))return;items=arr.map(x=>Object.assign(mk(x.title||'',x.list==='cold'?'cold':'focus',x),{id:x.id||uid(),created:x.created||Date.now(),doneAt:x.doneAt||null}));if(d&&d.habits&&Array.isArray(d.habits.habits)){H=d.habits;hsave()}save();render();toast('Backup restored')}catch(_){toast('Not a valid Hey Murph backup.')}};
+ if(!confirm(`Replace all current data with ${arr.length} items from backup?`))return;items=arr.map(x=>Object.assign(mk(x.title||'',x.list==='cold'?'cold':'focus',x),{id:x.id||uid(),created:x.created||Date.now(),doneAt:x.doneAt||null}));if(d&&d.journal&&Array.isArray(d.journal.entries)){J=d.journal;jsave()}if(d&&d.habits&&Array.isArray(d.habits.habits)){H=d.habits;hsave()}save();render();toast('Backup restored')}catch(_){toast('Not a valid Hey Murph backup.')}};
 const QUOTES=[
 "Calm isn't the absence of chaos — it's the presence of a system.",
 "A system with clarity on both the problem and the desired outcome has 80% solved its purpose.",
