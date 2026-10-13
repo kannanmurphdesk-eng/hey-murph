@@ -1,5 +1,6 @@
 'use strict';
 const TAGS=['damage control','preventive damage control','overdue','quick wins','delegation'];
+const TC={'damage control':'#ff6b5e','preventive damage control':'#ffb547','overdue':'#ff4fb4','quick wins':'#3ddc84','delegation':'#2fd3e0'};
 const CAP=10,TOPCAP=3,KEY='heymurph.v1';
 let items=load(),view='focus';
 const $=s=>document.querySelector(s);
@@ -28,8 +29,8 @@ function render(){
  const f=openIn('focus').length;$('#count').textContent=view==='focus'?`${f}/${CAP} open · ${openIn('focus').filter(i=>i.top).length}/${TOPCAP} top`:`${L.length} item(s)`;
  $('#quote').style.display=view==='focus'?'':'none';
  $('#add').style.display=(view==='focus'||view==='cold')?'flex':'none';
- $('#list').innerHTML=L.map(i=>`<li class="${i.top?'top':''}" data-id="${i.id}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button>
- <div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}${i.customer?'👤 '+esc(i.customer)+' ':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}</span>`:''}${view!=='focus'&&view!=='cold'?' · '+(i.list==='focus'?'Focus':'Cold'):''}</div></div>
+ $('#list').innerHTML=L.map(i=>`<li class="${i.top?'top':''}" data-id="${i.id}" style="--stripe:${i.tags[0]?TC[i.tags[0]]:i.top?'#f5c96a':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button>
+ <div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.tags.map(t=>`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`).join('')}${i.customer?'👤 '+esc(i.customer)+' ':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}</span>`:''}${view!=='focus'&&view!=='cold'?' · '+(i.list==='focus'?'Focus':'Cold'):''}</div></div>
  ${i.done?'':`<button class="mv" data-a="move">${i.list==='focus'?'→ Cold':'→ Focus'}</button>`}</li>`).join('')||'<li class="empty">Nothing here. Clear skies.</li>';
 }
 $('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.closest('li').dataset.id;
@@ -38,7 +39,7 @@ $('#tabs').addEventListener('click',e=>{if(e.target.dataset.v){view=e.target.dat
 $('#custFilter').onchange=$('#tagFilter').onchange=render;
 $('#tagFilter').innerHTML+=TAGS.map(t=>`<option>${t}</option>`).join('');
 $('#add').addEventListener('submit',e=>{e.preventDefault();if(add($('#addInput').value,view==='cold'?'cold':'focus'))$('#addInput').value=''});
-$('#tagBox').innerHTML+=TAGS.map(t=>`<label><input type="checkbox" name="tag" value="${t}"><span>${t}</span></label>`).join('');
+$('#tagBox').innerHTML+=TAGS.map(t=>`<label style="--c:${TC[t]}"><input type="checkbox" name="tag" value="${t}"><span>${t}</span></label>`).join('');
 let editing=null;
 function openEdit(id){editing=items.find(x=>x.id===id);const f=$('#editForm');f.title.value=editing.title;f.customer.value=editing.customer;f.due.value=editing.due;f.top.checked=editing.top;
  f.querySelectorAll('[name=tag]').forEach(c=>c.checked=editing.tags.includes(c.value));$('#edit').showModal()}
@@ -80,7 +81,7 @@ const QUOTES=[
 "Time is the most valuable resource we have.",
 "Most of the time, we are like the Roman Emperor Nero, we forget what is important and give importance to things that are not worth our attention."];
 let qi=(Math.floor(Date.now()/864e5)+Math.floor(Math.random()*QUOTES.length))%QUOTES.length;
-function showQuote(){const b=$('#qText');b.classList.remove('in');void b.offsetWidth;b.textContent=QUOTES[qi];b.classList.add('in')}
+function showQuote(){const b=$('#qText');b.classList.remove('in');void b.offsetWidth;b.textContent=QUOTES[qi];$('#quote').style.setProperty('--h',(qi*47)%360);b.classList.add('in')}
 function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote()}
 $('#quote').addEventListener('click',nextQuote);$('#quote').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();nextQuote()}});
 function greet(){const d=new Date(),h=d.getHours();$('#greet').textContent=(h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', sir';

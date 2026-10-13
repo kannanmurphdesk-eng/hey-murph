@@ -71,3 +71,24 @@ textarea{width:100%}
 #tagBox label input:checked+span{background:#1a73e8;border-color:#1a73e8;color:#fff;box-shadow:0 0 16px rgba(26,115,232,.45)}
 #tagBox label input:focus-visible+span{outline:2px solid #1a73e8;outline-offset:2px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ===== multi-colour palette (v4) ===== */
+:root{--grad:linear-gradient(135deg,#8f6bff,#5b8cff 45%,#2fd3e0)}
+h1{background:linear-gradient(90deg,#fff 0%,#c9b6ff 45%,#7fe3ff 100%);-webkit-background-clip:text;background-clip:text}
+.logo{border-color:#8f6bff;box-shadow:0 0 18px rgba(143,107,255,.5)}.logo:after{border-color:#2fd3e0}
+.primary,#add button{background:var(--grad)}
+#add input:focus{border-color:#8f6bff}
+/* tabs */
+#tabs button[data-v=focus]{--t:#a58bff}#tabs button[data-v=cold]{--t:#7fd4ff}#tabs button[data-v=overdue]{--t:#ff6f91}#tabs button[data-v=done]{--t:#3ddc84}
+#tabs button.on{color:var(--t);background:color-mix(in srgb,var(--t) 16%,transparent)}
+#tabs button.on:after{background:var(--t);box-shadow:0 0 14px var(--t)}
+/* quote: rotating hue border */
+#quote{--h:250;border:1.5px solid transparent;background:linear-gradient(135deg,hsla(var(--h),60%,22%,.6),hsla(calc(var(--h) + 60),50%,14%,.7)) padding-box,linear-gradient(#0b1126,#0b1126) padding-box,linear-gradient(120deg,hsl(var(--h),90%,65%),hsl(calc(var(--h) + 80),90%,62%),hsl(calc(var(--h) + 160),90%,60%)) border-box;box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 28px hsla(var(--h),90%,60%,.28);transition:box-shadow .5s}
+#quote .qk{color:hsl(var(--h),90%,78%)}#quote:before{border-color:hsla(calc(var(--h) + 80),90%,65%,.4)}
+/* tags */
+.tag{--c:#8f6bff;background:color-mix(in srgb,var(--c) 16%,transparent);color:color-mix(in srgb,var(--c) 75%,#fff);border-color:color-mix(in srgb,var(--c) 40%,transparent)}
+#tagBox label input:checked+span{background:var(--c);border-color:var(--c);color:#0a0f1f;font-weight:600;box-shadow:0 0 16px color-mix(in srgb,var(--c) 55%,transparent)}
+#tagBox label input:focus-visible+span{outline-color:var(--c)}
+/* card stripe */
+li{position:relative;overflow:hidden}
+li:not(.empty):before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--stripe,#8f6bff);box-shadow:0 0 12px var(--stripe,#8f6bff)}
+li .chk.on{background:var(--grad)}
