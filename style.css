@@ -14,3 +14,11 @@ dialog{background:var(--bg);color:var(--fg);border:1px solid var(--mut);border-r
 .row{display:flex;gap:8px;align-items:center}.row input{width:auto;min-height:24px}fieldset{border:1px solid var(--mut);border-radius:10px}fieldset label{display:flex;gap:8px;align-items:center;margin:4px 0}
 .btns{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}.col{display:flex;flex-direction:column;gap:8px}.primary{background:var(--acc);color:#fff}.danger{color:var(--bad);margin-right:auto}
 textarea{width:100%}#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 14px;border-radius:10px;display:none;max-width:90vw}
+/* tag chips */
+#tagBox{display:flex;flex-wrap:wrap;gap:8px;padding:10px}
+#tagBox label{display:inline-flex;margin:0;width:auto}
+#tagBox label input{position:absolute;opacity:0;width:1px;height:1px}
+#tagBox label span{display:inline-block;padding:10px 14px;border:1px solid var(--mut);border-radius:999px;font-size:15px;line-height:1.2;min-height:44px;box-sizing:border-box;display:flex;align-items:center;user-select:none}
+#tagBox label input:checked+span{background:#1a73e8;border-color:#1a73e8;color:#fff}
+#tagBox label input:focus-visible+span{outline:2px solid #1a73e8;outline-offset:2px}
+.tag{display:inline-block;padding:2px 8px;margin:0 4px 4px 0;border-radius:999px;background:#1a73e81f;color:#1a73e8;font-size:12px}

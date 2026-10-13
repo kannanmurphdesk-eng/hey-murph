@@ -37,7 +37,7 @@ $('#tabs').addEventListener('click',e=>{if(e.target.dataset.v){view=e.target.dat
 $('#custFilter').onchange=$('#tagFilter').onchange=render;
 $('#tagFilter').innerHTML+=TAGS.map(t=>`<option>${t}</option>`).join('');
 $('#add').addEventListener('submit',e=>{e.preventDefault();if(add($('#addInput').value,view==='cold'?'cold':'focus'))$('#addInput').value=''});
-$('#tagBox').innerHTML+=TAGS.map(t=>`<label><input type="checkbox" name="tag" value="${t}">${t}</label>`).join('');
+$('#tagBox').innerHTML+=TAGS.map(t=>`<label><input type="checkbox" name="tag" value="${t}"><span>${t}</span></label>`).join('');
 let editing=null;
 function openEdit(id){editing=items.find(x=>x.id===id);const f=$('#editForm');f.title.value=editing.title;f.customer.value=editing.customer;f.due.value=editing.due;f.top.checked=editing.top;
  f.querySelectorAll('[name=tag]').forEach(c=>c.checked=editing.tags.includes(c.value));$('#edit').showModal()}
