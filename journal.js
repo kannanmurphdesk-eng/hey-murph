@@ -1,62 +1,56 @@
 'use strict';
-// ===== Journal (CODE: Capture, Organize, Distill, Express) =====
-const JKEY='heymurph.journal.v1',BUCKETS=['Inbox','Projects','Areas','Resources','Archive'];
-const BCOL={Inbox:'#9aa4c7',Projects:'#a58bff',Areas:'#3ddc84',Resources:'#2fd3e0',Archive:'#ffb547'};
-const LVL=['Raw','Bolded','Highlighted','Summarised'],LCOL=['#7d86a8','#ff8a3d','#ffd84d','#3ddc84'];
-function jload(){try{const j=JSON.parse(localStorage.getItem(JKEY));if(j&&Array.isArray(j.entries))return j}catch(e){}return{entries:[]}}
-let J=jload();const jsave=()=>localStorage.setItem(JKEY,JSON.stringify(J));
-let jf={bucket:'All',express:false,q:''},jsel=new Set(),jediting=null;
-const pad=n=>String(n).padStart(2,'0');
-const jDay=ts=>{const d=new Date(ts);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
-const jStamp=ts=>{const d=new Date(ts);return jDay(ts)+' '+pad(d.getHours())+':'+pad(d.getMinutes())};
-const jLevel=e=>e.essence&&e.essence.trim()?3:/==[^=\n]+==/.test(e.body)?2:/\*\*[^*\n]+\*\*/.test(e.body)?1:0;
-const jTags=s=>String(s||'').split(',').map(t=>t.trim()).filter(Boolean);
-function jMd(s){return esc(s).replace(/==([^=\n]+)==/g,'<mark>$1</mark>').replace(/\*\*([^*\n]+)\*\*/g,'<b>$1</b>')
- .replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>').replace(/\n/g,'<br>')}
-function jFiltered(){const q=jf.q.toLowerCase();return J.entries.filter(e=>(jf.express?e.packet:jf.bucket==='All'||e.bucket===jf.bucket)
- &&(!q||[e.body,e.essence,e.customer,e.type,e.bucket,(e.tags||[]).join(' ')].join(' ').toLowerCase().includes(q))).sort((a,b)=>b.ts-a.ts)}
-function jCapture(){const t=$('#jText').value.trim();if(!t){toast('Write something first.');return null}
- const e={id:uid(),ts:Date.now(),body:t,type:$('#jType').value,customer:$('#jCust').value.trim(),tags:jTags($('#jTags').value),bucket:'Inbox',essence:'',packet:false};
- J.entries.push(e);jsave();$('#jText').value='';$('#jType').value='';$('#jCust').value='';$('#jTags').value='';toast('Captured to Inbox');renderJournal();return e}
-function renderJournal(){
- const cnt=b=>J.entries.filter(e=>b==='All'||e.bucket===b).length;
- $('#jChips').innerHTML=['All',...BUCKETS].map(b=>`<button class="jchip${!jf.express&&jf.bucket===b?' on':''}" data-b="${b}" style="--c:${BCOL[b]||'#e8ecf8'}">${b} <small>${cnt(b)}</small></button>`).join('')
-  +`<button class="jchip ex${jf.express?' on':''}" data-x="1" style="--c:#ff4fb4">★ Express <small>${J.entries.filter(e=>e.packet).length}</small></button>`;
- const L=jFiltered();
- $('#jBar').innerHTML=`<span>${L.length} entr${L.length===1?'y':'ies'}${jsel.size?` · ${jsel.size} selected`:''}</span>`
-  +(jsel.size?`<button data-exp="sel" class="primary sm">Export selected</button><button data-exp="clr" class="sm">Clear</button>`:'')
-  +`<button data-exp="flt" class="sm">Export shown</button><button data-exp="all" class="sm">Export all</button>`;
- let day='',h='';
- for(const e of L){const d=jDay(e.ts),lv=jLevel(e);if(d!==day){day=d;h+=`<div class="jday">${new Date(e.ts).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'})}</div>`}
-  h+=`<article class="jent${jsel.has(e.id)?' sel':''}" data-id="${e.id}" style="--c:${BCOL[e.bucket]}">
-  <div class="jtop"><button class="jck" data-j="sel" aria-label="Select">${jsel.has(e.id)?'✓':''}</button><span class="jt">${jStamp(e.ts).slice(11)}</span>
-  ${e.type?`<span class="jb">${esc(e.type)}</span>`:''}<select class="jbk" data-j="move" aria-label="Bucket">${BUCKETS.map(b=>`<option${b===e.bucket?' selected':''}>${b}</option>`).join('')}</select>
-  <span class="jl" style="--l:${LCOL[lv]}" title="Distil level">L${lv} ${LVL[lv]}</span><button class="jpk${e.packet?' on':''}" data-j="pk" aria-label="Intermediate packet">★</button></div>
-  ${e.essence?`<div class="jess">${jMd(e.essence)}</div>`:''}<div class="jbody">${jMd(e.body)}</div>
-  <div class="jmeta">${(e.tags||[]).map(t=>`<span class="tag">#${esc(t)}</span>`).join('')}${e.customer?`<span>👤 ${esc(e.customer)}</span>`:''}<button class="sm" data-j="edit">Edit / Distil</button></div></article>`}
- $('#jList').innerHTML=h||`<div class="empty jempty">${jf.express?'No intermediate packets yet. Star ★ an entry to send it to Express.':'Nothing captured here yet.'}</div>`}
-function jToMd(list,title){return `# ${title}\n\n_Exported ${jStamp(Date.now())} · ${list.length} entr${list.length===1?'y':'ies'}_\n\n`+list.map(e=>
- `## ${jStamp(e.ts)} — ${e.type||'Note'}\n\n- PARA: ${e.bucket}\n`+(e.tags&&e.tags.length?`- Tags: ${e.tags.join(', ')}\n`:'')+(e.customer?`- Customer: ${e.customer}\n`:'')
- +(e.essence?`- Essence: ${e.essence}\n`:'')+`- Distil level: ${jLevel(e)}${e.packet?'\n- Intermediate packet: yes':''}\n\n${e.body}\n`).join('\n')}
-function jExport(kind){let L,t;const d=today();
- if(kind==='clr'){jsel.clear();renderJournal();return}
- if(kind==='sel'){L=J.entries.filter(e=>jsel.has(e.id)).sort((a,b)=>a.ts-b.ts);t='Hey Murph Journal — Selection'}
- else if(kind==='flt'){L=jFiltered();t='Hey Murph Journal — '+(jf.express?'Express':jf.bucket)+(jf.q?` (search: ${jf.q})`:'')}
- else{L=[...J.entries].sort((a,b)=>b.ts-a.ts);t='Hey Murph Journal — All'}
- if(!L.length){toast('Nothing to export.');return}
- const md=jToMd(L,t);window.jLastExport=md;share(`hey-murph-journal-${kind}-${d}.md`,md,'text/markdown');return md}
-$('#jSave').onclick=jCapture;
-$('#jText').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))jCapture()});
-$('#jSearch').oninput=e=>{jf.q=e.target.value;renderJournal()};
-$('#jChips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.x)jf.express=!jf.express;else{jf.express=false;jf.bucket=b.dataset.b}renderJournal()});
-$('#jBar').addEventListener('click',e=>{const b=e.target.closest('[data-exp]');if(b)jExport(b.dataset.exp)});
-$('#jList').addEventListener('change',e=>{if(e.target.dataset.j==='move'){const x=J.entries.find(z=>z.id===e.target.closest('[data-id]').dataset.id);x.bucket=e.target.value;jsave();toast('Moved to '+x.bucket);renderJournal()}});
-$('#jList').addEventListener('click',e=>{const b=e.target.closest('[data-j]');if(!b||b.tagName==='SELECT')return;const id=b.closest('[data-id]').dataset.id,x=J.entries.find(z=>z.id===id);
- if(b.dataset.j==='sel'){jsel.has(id)?jsel.delete(id):jsel.add(id)}else if(b.dataset.j==='pk'){x.packet=!x.packet;jsave()}else if(b.dataset.j==='edit'){jOpen(x);return}renderJournal()});
-function jOpen(x){jediting=x;const f=$('#jForm');f.body.value=x.body;f.essence.value=x.essence||'';f.type.value=x.type||'';f.bucket.value=x.bucket;f.customer.value=x.customer||'';f.tags.value=(x.tags||[]).join(', ');f.packet.checked=!!x.packet;$('#jEdit').showModal()}
-$('#jForm').addEventListener('click',e=>{const b=e.target.closest('[data-w]');if(!b)return;const ta=$('#jForm').body,w=b.dataset.w,s=ta.selectionStart,en=ta.selectionEnd;
- if(s===en){toast('Select some text first.');return}const v=ta.value;ta.value=v.slice(0,s)+w+v.slice(s,en)+w+v.slice(en);ta.focus();ta.setSelectionRange(s,en+2*w.length)});
-$('#jEdit').addEventListener('close',()=>{const r=$('#jEdit').returnValue,f=$('#jForm'),x=jediting;if(!x)return;jediting=null;
- if(r==='delete'){if(confirm('Delete this journal entry?')){J.entries=J.entries.filter(z=>z!==x);jsel.delete(x.id);jsave();renderJournal();toast('Entry deleted')}return}
- if(r!=='save')return;x.body=f.body.value.trim()||x.body;x.essence=f.essence.value.trim();x.type=f.type.value;x.bucket=f.bucket.value;x.customer=f.customer.value.trim();x.tags=jTags(f.tags.value);x.packet=f.packet.checked;jsave();renderJournal()});
-if(view==='journal')renderJournal();
+// ===== Journal: Record → Process → Execute (key heymurph.journal.v1) =====
+const JKEY='heymurph.journal.v1',JTYPES=['Idea','Quote','Note','Link','Decision'];
+const JF={inbox:'Record',processed:'Process',exec:'Executed',notes:'Notes',all:'All'};
+const DEST={focus:'Focus List',cold:'Cold Storage',notes:'Notes'};
+function jload(){try{const j=JSON.parse(localStorage.getItem(JKEY));if(Array.isArray(j))return j}catch(e){}return[]}
+let J=jload(),jf='inbox',jq='',jcur=null;
+const jsave=()=>localStorage.setItem(JKEY,JSON.stringify(J));
+const p2=n=>String(n).padStart(2,'0');
+const jday=t=>{const d=new Date(t);return`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`};
+const jtime=t=>{const d=new Date(t);return`${p2(d.getHours())}:${p2(d.getMinutes())}`};
+const jstage=e=>e.exec?'exec':e.stage==='processed'?'processed':'inbox';
+const jlevel=e=>e.essence&&e.essence.trim()?'Summarised':/==[^=]+==/.test(e.text)?'Highlighted':/\*\*[^*]+\*\*/.test(e.text)?'Bolded':'Raw';
+const jfmt=s=>esc(s).replace(/\*\*([^*]+?)\*\*/g,'<b>$1</b>').replace(/==([^=]+?)==/g,'<mark>$1</mark>').replace(/\n/g,'<br>');
+const jtitle=e=>(e.essence&&e.essence.trim())||e.text.split('\n').find(l=>l.trim())?.replace(/\*\*|==/g,'').trim().slice(0,120)||'(empty)';
+function jnorm(x){return{id:x.id||uid(),text:String(x.text||''),type:JTYPES.includes(x.type)?x.type:'',customer:String(x.customer||''),created:+x.created||Date.now(),
+ stage:x.stage==='processed'?'processed':'record',essence:String(x.essence||''),processedAt:x.processedAt||null,exec:x.exec&&DEST[x.exec.dest]?x.exec:null}}
+function jlist(){let L=J.filter(e=>jf==='all'||(jf==='notes'?e.exec&&e.exec.dest==='notes':jf==='exec'?!!e.exec:jstage(e)===jf));
+ if(jq){const q=jq.toLowerCase();L=L.filter(e=>(e.text+' '+e.essence+' '+e.customer+' '+e.type).toLowerCase().includes(q))}
+ return L.sort((a,b)=>b.created-a.created)}
+function renderJournal(){const c=k=>J.filter(e=>k==='all'||(k==='notes'?e.exec&&e.exec.dest==='notes':k==='exec'?!!e.exec:jstage(e)===k)).length;
+ const box=$('#journal');if(!box.dataset.init){box.dataset.init=1;box.innerHTML=`
+ <form id="jrec" class="jcard"><textarea id="jtext" rows="4" placeholder="Record a thought… (auto-stamped)"></textarea>
+ <div class="jrow"><select id="jtype"><option value="">Type</option>${JTYPES.map(t=>`<option>${t}</option>`).join('')}</select><input id="jcust" list="custList" placeholder="Customer"><button class="primary">Save</button></div></form>
+ <div id="jfilt"></div><div class="jrow"><input id="jsearch" type="search" placeholder="Search journal…"><button id="jmd" type="button">Export MD</button></div><div id="jlist"></div>`;
+  $('#jrec').onsubmit=e=>{e.preventDefault();const t=$('#jtext').value.trim();if(!t)return;J.push(jnorm({text:t,type:$('#jtype').value,customer:$('#jcust').value.trim()}));jsave();$('#jtext').value='';$('#jtype').value='';$('#jcust').value='';toast('Recorded '+jtime(Date.now()));if(jf!=='inbox'&&jf!=='all')jf='inbox';renderJournal()};
+  $('#jsearch').oninput=e=>{jq=e.target.value.trim();renderJournal()};
+  $('#jfilt').onclick=e=>{const b=e.target.closest('[data-jf]');if(b){jf=b.dataset.jf;renderJournal()}};
+  $('#jlist').onclick=e=>{const b=e.target.closest('[data-jid]');if(b)jopen(b.dataset.jid)};
+  $('#jmd').onclick=()=>{const all=confirm('Export ALL journal entries?\nOK = all, Cancel = current filter ('+JF[jf]+(jq?', search':'')+')');share(`hey-murph-journal-${today()}.md`,jmd(all?[...J].sort((a,b)=>b.created-a.created):jlist(),all?'All':JF[jf]),'text/markdown')}}
+ $('#jfilt').innerHTML=Object.entries(JF).map(([k,n])=>`<button data-jf="${k}" class="s-${k}${jf===k?' on':''}">${n}<i>${c(k)}</i></button>`).join('');
+ const L=jlist();let html='',day='';
+ for(const e of L){const d=jday(e.created);if(d!==day){day=d;html+=`<h3 class="jday">${new Date(e.created).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'})}</h3>`}
+  const st=jstage(e);html+=`<div class="jent s-${st}" data-jid="${e.id}"><div class="jm"><span class="jt">${jtime(e.created)}</span>${e.type?`<span class="jty">${e.type}</span>`:''}<span class="lvl l-${jlevel(e)}">${jlevel(e)}</span>${e.customer?`<span>👤 ${esc(e.customer)}</span>`:''}</div>
+  ${e.essence?`<div class="jess">${esc(e.essence)}</div>`:''}<div class="jb">${jfmt(e.text)}</div>${e.exec?`<div class="jx d-${e.exec.dest}">→ ${DEST[e.exec.dest]} · ${jday(e.exec.at)} ${jtime(e.exec.at)}</div>`:''}</div>`}
+ $('#jlist').innerHTML=html||'<div class="empty">Nothing here yet.</div>'}
+function jmd(L,label){return`# Hey Murph Journal — ${label}\n\nExported ${jday(Date.now())} ${jtime(Date.now())} (${L.length} entries)\n\n`+L.map(e=>`## ${jday(e.created)} ${jtime(e.created)} — ${e.type||'Entry'}\n\n- Stage: ${{inbox:'Record',processed:'Processed',exec:'Executed'}[jstage(e)]} (${jlevel(e)})\n`+(e.customer?`- Customer: ${e.customer}\n`:'')+(e.essence?`- Essence: ${e.essence}\n`:'')+`- Execute: ${e.exec?DEST[e.exec.dest]+' ('+jday(e.exec.at)+' '+jtime(e.exec.at)+')':'—'}\n\n${e.text}\n`).join('\n')}
+// editor
+function jopen(id){jcur=J.find(e=>e.id===id);const f=$('#jform');f.text.value=jcur.text;f.type.value=jcur.type;f.customer.value=jcur.customer;f.essence.value=jcur.essence;jprev();$('#jedit').showModal()}
+function jprev(){const f=$('#jform'),tmp={text:f.text.value,essence:f.essence.value};$('#jprev').innerHTML=jfmt(tmp.text)||'<i>empty</i>';$('#jlvl').textContent=jlevel(tmp);$('#jlvl').className='lvl l-'+jlevel(tmp);
+ $('#jst').textContent=jcur.exec?'Executed → '+DEST[jcur.exec.dest]+' · '+jday(jcur.exec.at)+' '+jtime(jcur.exec.at):jcur.stage==='processed'?'Processed':'Record (unprocessed)'}
+function jwrap(m){const t=$('#jform').text,a=t.selectionStart,b=t.selectionEnd;if(a===b){toast('Select some text first');return}
+ t.setRangeText(m+t.value.slice(a,b)+m,a,b,'select');t.focus();jprev()}
+function jcommit(){const f=$('#jform');jcur.text=f.text.value.trim()||jcur.text;jcur.type=f.type.value;jcur.customer=f.customer.value.trim();jcur.essence=f.essence.value.trim()}
+function jexec(dest){jcommit();if(jcur.exec&&!confirm('Already sent to '+DEST[jcur.exec.dest]+'. Send again?'))return;
+ if(dest!=='notes'){if(dest==='focus'&&!canFocus())return;const t=mk(jtitle(jcur),dest,{customer:jcur.customer});t.notes=jcur.text.replace(/\*\*|==/g,'');t.jid=jcur.id;items.push(t);save();jcur.exec={dest,at:Date.now(),taskId:t.id}}
+ else jcur.exec={dest,at:Date.now()};
+ if(jcur.stage!=='processed'){jcur.stage='processed';jcur.processedAt=Date.now()}jsave();$('#jedit').close('x');toast('Sent to '+DEST[dest]);render()}
+$('#jform').addEventListener('input',jprev);
+$('#jform').addEventListener('click',e=>{const a=e.target.closest('[data-j]');if(!a)return;e.preventDefault();const k=a.dataset.j;
+ if(k==='b')jwrap('**');else if(k==='h')jwrap('==');else if(k==='proc'){jcommit();jcur.stage='processed';jcur.processedAt=Date.now();jsave();$('#jedit').close('x');toast('Processed');render()}
+ else if(k==='unproc'){jcommit();jcur.stage='record';jsave();jprev()}
+ else if(DEST[k])jexec(k);else if(k==='del'){if(confirm('Delete this journal entry?')){J=J.filter(x=>x!==jcur);jsave();$('#jedit').close('x');render()}}
+ else if(k==='save'){jcommit();jsave();$('#jedit').close('x');render()}else if(k==='cancel')$('#jedit').close('x')});
+function jImport(arr){if(!Array.isArray(arr))return;J=arr.map(jnorm);jsave()}
+$('#jform').addEventListener('submit',e=>e.preventDefault());

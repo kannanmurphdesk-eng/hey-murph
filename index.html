@@ -8,25 +8,16 @@
 <main>
 <figure id="quote" role="button" tabindex="0" aria-label="Tesseract quote, tap for next"><div class="qk">The Tesseract</div><blockquote id="qText"></blockquote><figcaption>— Kannan Mohanan <span class="qn">tap for next ›</span></figcaption></figure>
 <div id="filters"><select id="custFilter"><option value="">All customers</option></select><select id="tagFilter"><option value="">All tags</option></select></div>
-<section id="habits" hidden></section>
-<section id="journal" hidden>
-<div class="jcap"><textarea id="jText" rows="4" placeholder="Capture an idea, quote, note, link, meeting note…"></textarea>
-<div class="jrow"><select id="jType"><option value="">Type</option><option>Idea</option><option>Quote</option><option>Note</option><option>Link</option><option>Decision</option></select>
-<input id="jCust" placeholder="Customer" list="custList"><input id="jTags" placeholder="Tags, comma"></div>
-<button id="jSave" class="primary jsave">Save to Inbox</button></div>
-<input id="jSearch" type="search" placeholder="Search journal…">
-<div id="jChips" class="jchips"></div>
-<div id="jBar" class="jbar"></div>
-<div id="jList"></div>
-</section><div id="count"></div><ul id="list"></ul>
+<section id="habits" hidden></section><section id="journal" hidden></section><div id="count"></div><ul id="list"></ul>
 </main>
 <form id="add"><input id="addInput" placeholder="Quick add to current list…" autocomplete="off"><button>Add</button></form>
-<nav id="tabs"><button data-v="focus" class="on"><i>◎</i><span>Focus</span></button><button data-v="cold"><i>❄</i><span>Cold</span></button><button data-v="overdue"><i>⏰</i><span>Overdue</span></button><button data-v="done"><i>✓</i><span>Done</span></button><button data-v="habits"><i>◆</i><span>Habits</span></button><button data-v="journal"><i>✎</i><span>Journal</span></button></nav>
+<nav id="tabs"><button data-v="focus" class="on"><b>◎</b>Focus</button><button data-v="cold"><b>❄</b>Cold</button><button data-v="overdue"><b>⏰</b>Overdue</button><button data-v="done"><b>✓</b>Done</button><button data-v="habits"><b>🔥</b>Habits</button><button data-v="journal"><b>📓</b>Journal</button></nav>
 <div id="toast"></div>
 <dialog id="edit"><form method="dialog" id="editForm">
 <label>Title<input name="title" required></label>
 <label>Customer<input name="customer" list="custList"></label><datalist id="custList"></datalist>
 <label>Due<input name="due" type="date"></label>
+<label>Notes<textarea name="notes" rows="3"></textarea></label>
 <fieldset id="tagBox"><legend>Tags</legend></fieldset>
 <label class="row"><input type="checkbox" name="top"> Top priority</label>
 <div class="btns"><button value="delete" class="danger" type="submit">Delete</button><button value="cancel" formnovalidate>Cancel</button><button value="save" class="primary">Save</button></div>
@@ -36,15 +27,13 @@
 <button value="importJson">Import JSON backup</button><button value="importMd">Import Markdown (paste)</button><button value="cancel">Close</button></div></form></dialog>
 <dialog id="paste"><form method="dialog"><textarea id="pasteText" rows="12" placeholder="Paste Hey Murph Markdown"></textarea>
 <div class="btns"><button value="cancel">Cancel</button><button value="ok" class="primary">Import</button></div></form></dialog>
-<dialog id="jEdit"><form method="dialog" id="jForm">
-<div class="jtools"><button type="button" data-w="**"><b>B</b> Bold</button><button type="button" data-w="=="><mark>H</mark> Highlight</button></div>
-<textarea name="body" rows="8"></textarea>
-<label>Essence (one line)<input name="essence" maxlength="200"></label>
-<div class="jrow"><label>Type<select name="type"><option value="">—</option><option>Idea</option><option>Quote</option><option>Note</option><option>Link</option><option>Decision</option></select></label>
-<label>Bucket<select name="bucket"><option>Inbox</option><option>Projects</option><option>Areas</option><option>Resources</option><option>Archive</option></select></label></div>
-<label>Customer<input name="customer" list="custList"></label><label>Tags<input name="tags" placeholder="comma separated"></label>
-<label class="row"><input type="checkbox" name="packet"> Intermediate packet (Express)</label>
-<div class="btns"><button value="delete" class="danger" type="submit">Delete</button><button value="cancel" formnovalidate>Cancel</button><button value="save" class="primary">Save</button></div>
-</form></dialog>
+<dialog id="jedit"><form id="jform"><div class="jrow"><b class="jh">Process</b><span id="jlvl" class="lvl"></span><span id="jst" class="jsts"></span></div>
+<div class="jrow"><button data-j="b"><b>B</b> Bold</button><button data-j="h"><mark>H</mark> Highlight</button></div>
+<textarea name="text" rows="6"></textarea><div id="jprev" class="jb jprev"></div>
+<label>Essence (one line)<input name="essence" maxlength="160"></label>
+<div class="jrow"><select name="type"><option value="">Type</option><option>Idea</option><option>Quote</option><option>Note</option><option>Link</option><option>Decision</option></select><input name="customer" list="custList" placeholder="Customer"></div>
+<div class="jrow"><button data-j="proc" class="s-processed">Mark processed</button><button data-j="unproc">Back to Record</button></div>
+<div class="jlab">Execute</div><div class="jrow"><button data-j="focus" class="d-focus">→ Focus List</button><button data-j="cold" class="d-cold">→ Cold</button><button data-j="notes" class="d-notes">→ Notes</button></div>
+<div class="btns"><button data-j="del" class="danger">Delete</button><button data-j="cancel">Cancel</button><button data-j="save" class="primary">Save</button></div></form></dialog>
 <input type="file" id="fileIn" accept=".json,application/json" hidden>
 <script src="app.js"></script><script src="journal.js"></script></body></html>

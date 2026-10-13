@@ -18,7 +18,7 @@ function move(id){const i=items.find(x=>x.id===id);if(i.list==='cold'){if(!canFo
 function toggleDone(id){const i=items.find(x=>x.id===id);if(i.done&&i.list==='focus'&&!canFocus())return;i.done=!i.done;i.doneAt=i.done?Date.now():null;if(i.done)i.top=false;save();render()}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function render(){
- const hv=view==='habits'||view==='journal';$('#habits').hidden=view!=='habits';$('#journal').hidden=view!=='journal';if(view==='journal'&&window.renderJournal)renderJournal();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();
+ const hv=view==='habits'||view==='journal';$('#habits').hidden=view!=='habits';$('#journal').hidden=view!=='journal';['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
  const cs=[...new Set(items.map(i=>i.customer).filter(Boolean))].sort(),cf=$('#custFilter'),cur=cf.value;
  cf.innerHTML='<option value="">All customers</option>'+cs.map(c=>`<option>${esc(c)}</option>`).join('');cf.value=cs.includes(cur)?cur:'';
@@ -31,7 +31,7 @@ function render(){
  $('#quote').style.display=view==='focus'?'':'none';
  $('#add').style.display=(!hv&&view==='focus'||view==='focus'||view==='cold')?'flex':'none';
  $('#list').innerHTML=L.map(i=>`<li class="${i.top?'top':''}" data-id="${i.id}" style="--stripe:${i.tags[0]?TC[i.tags[0]]:i.top?'#f5c96a':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button>
- <div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.tags.map(t=>`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`).join('')}${i.customer?'👤 '+esc(i.customer)+' ':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}</span>`:''}${view!=='focus'&&view!=='cold'?' · '+(i.list==='focus'?'Focus':'Cold'):''}</div></div>
+ <div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.tags.map(t=>`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`).join('')}${i.jid?'📓 ':''}${i.customer?'👤 '+esc(i.customer)+' ':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}</span>`:''}${view!=='focus'&&view!=='cold'?' · '+(i.list==='focus'?'Focus':'Cold'):''}</div></div>
  ${i.done?'':`<button class="mv" data-a="move">${i.list==='focus'?'→ Cold':'→ Focus'}</button>`}</li>`).join('')||'<li class="empty">Nothing here. Clear skies.</li>';
 }
 $('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.closest('li').dataset.id;
@@ -69,13 +69,13 @@ $('#habits').addEventListener('click',e=>{const b=e.target.closest('[data-ht],[d
  else{const h=H.habits[b.dataset.ht??b.dataset.h],d=b.dataset.d||dAgo(0);if(h.days[d])delete h.days[d];else h.days[d]=1}
  hsave();renderHabits()});
 let editing=null;
-function openEdit(id){editing=items.find(x=>x.id===id);const f=$('#editForm');f.title.value=editing.title;f.customer.value=editing.customer;f.due.value=editing.due;f.top.checked=editing.top;
+function openEdit(id){editing=items.find(x=>x.id===id);const f=$('#editForm');f.title.value=editing.title;f.customer.value=editing.customer;f.due.value=editing.due;f.top.checked=editing.top;f.notes.value=editing.notes||'';
  f.querySelectorAll('[name=tag]').forEach(c=>c.checked=editing.tags.includes(c.value));$('#edit').showModal()}
 $('#edit').addEventListener('close',()=>{const r=$('#edit').returnValue,f=$('#editForm'),i=editing;if(!i)return;editing=null;
  if(r==='delete'){if(confirm('Delete "'+i.title+'"?')){items=items.filter(x=>x!==i);save();render()}return}
  if(r!=='save')return;
  if(f.top.checked&&!i.top){if(i.list!=='focus'||i.done)toast('Top priority only applies to open Focus items.');else if(items.filter(x=>x.top&&!x.done).length>=TOPCAP)toast('Max 3 top priority items.');else i.top=true}else if(!f.top.checked)i.top=false;
- i.title=f.title.value.trim()||i.title;i.customer=f.customer.value.trim();i.due=f.due.value;i.tags=[...f.querySelectorAll('[name=tag]:checked')].map(c=>c.value);save();render()});
+ i.title=f.title.value.trim()||i.title;i.customer=f.customer.value.trim();i.due=f.due.value;if(f.notes.value.trim()||i.notes)i.notes=f.notes.value;i.tags=[...f.querySelectorAll('[name=tag]:checked')].map(c=>c.value);save();render()});
 // export/import
 function toMd(){const sec=(n,l)=>`## ${n}\n`+items.filter(i=>i.list===l).map(i=>`- [${i.done?'x':' '}] ${i.title.replace(/\[/g,'(').replace(/\]/g,')')}`+(i.tags.length?` [tags: ${i.tags.join(', ')}]`:'')+(i.due?` [due: ${i.due}]`:'')+(i.customer?` [customer: ${i.customer}]`:'')+(i.top?' [top]':'')).join('\n');
  return `# Hey Murph Export\n\n${sec('Focus List','focus')}\n\n${sec('Cold Storage','cold')}\n`}
@@ -91,11 +91,11 @@ async function share(name,text,type){const file=new File([text],name,{type});
 $('#menuBtn').onclick=()=>$('#menu').showModal();
 $('#menu').addEventListener('close',()=>{const r=$('#menu').returnValue,d=today();
  if(r==='md')share(`hey-murph-${d}.md`,toMd(),'text/markdown');
- if(r==='json')share(`hey-murph-backup-${d}.json`,JSON.stringify({app:'hey-murph',version:1,exported:new Date().toISOString(),items,habits:H,journal:J},null,1),'application/json');
+ if(r==='json')share(`hey-murph-backup-${d}.json`,JSON.stringify({app:'hey-murph',version:1,exported:new Date().toISOString(),items,habits:H,journal:typeof J!=='undefined'?J:[]},null,1),'application/json');
  if(r==='importJson')$('#fileIn').click();if(r==='importMd'){$('#pasteText').value='';$('#paste').showModal()}});
 $('#paste').addEventListener('close',()=>{if($('#paste').returnValue==='ok'){const n=parseMd($('#pasteText').value);n.length?merge(n):toast('No items found in Markdown.')}});
 $('#fileIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const d=JSON.parse(await f.text());const arr=Array.isArray(d)?d:d.items;if(!Array.isArray(arr))throw 0;
- if(!confirm(`Replace all current data with ${arr.length} items from backup?`))return;items=arr.map(x=>Object.assign(mk(x.title||'',x.list==='cold'?'cold':'focus',x),{id:x.id||uid(),created:x.created||Date.now(),doneAt:x.doneAt||null}));if(d&&d.journal&&Array.isArray(d.journal.entries)){J=d.journal;jsave()}if(d&&d.habits&&Array.isArray(d.habits.habits)){H=d.habits;hsave()}save();render();toast('Backup restored')}catch(_){toast('Not a valid Hey Murph backup.')}};
+ if(!confirm(`Replace all current data with ${arr.length} items from backup?`))return;items=arr.map(x=>Object.assign(mk(x.title||'',x.list==='cold'?'cold':'focus',x),{id:x.id||uid(),created:x.created||Date.now(),doneAt:x.doneAt||null},x.notes?{notes:String(x.notes)}:{},x.jid?{jid:x.jid}:{}));if(d&&Array.isArray(d.journal)&&typeof jImport==='function')jImport(d.journal);if(d&&d.habits&&Array.isArray(d.habits.habits)){H=d.habits;hsave()}save();render();toast('Backup restored')}catch(_){toast('Not a valid Hey Murph backup.')}};
 const QUOTES=[
 "Calm isn't the absence of chaos — it's the presence of a system.",
 "A system with clarity on both the problem and the desired outcome has 80% solved its purpose.",
