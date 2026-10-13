@@ -1,0 +1,71 @@
+'use strict';
+const TAGS=['damage control','preventive damage control','overdue','quick wins','delegation'];
+const CAP=10,TOPCAP=3,KEY='heymurph.v1';
+let items=load(),view='focus';
+const $=s=>document.querySelector(s);
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+function save(){localStorage.setItem(KEY,JSON.stringify(items))}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const openIn=l=>items.filter(i=>!i.done&&i.list===l);
+const isOver=i=>!i.done&&i.due&&i.due<today();
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2800)}
+function canFocus(){if(openIn('focus').length>=CAP){toast('Focus List is full (10). Move or finish something first.');return false}return true}
+function mk(title,list,o={}){return{id:uid(),title:title.trim(),list,tags:(o.tags||[]).filter(t=>TAGS.includes(t)),due:o.due||'',customer:(o.customer||'').trim(),top:!!o.top&&list==='focus',done:!!o.done,created:Date.now(),doneAt:o.done?Date.now():null}}
+function add(title,list){if(!title.trim())return false;if(list==='focus'&&!canFocus())return false;items.push(mk(title,list));save();render();return true}
+function move(id){const i=items.find(x=>x.id===id);if(i.list==='cold'){if(!canFocus())return;i.list='focus'}else{i.list='cold';i.top=false}save();render()}
+function toggleDone(id){const i=items.find(x=>x.id===id);if(i.done&&i.list==='focus'&&!canFocus())return;i.done=!i.done;i.doneAt=i.done?Date.now():null;if(i.done)i.top=false;save();render()}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function render(){
+ document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
+ const cs=[...new Set(items.map(i=>i.customer).filter(Boolean))].sort(),cf=$('#custFilter'),cur=cf.value;
+ cf.innerHTML='<option value="">All customers</option>'+cs.map(c=>`<option>${esc(c)}</option>`).join('');cf.value=cs.includes(cur)?cur:'';
+ $('#custList').innerHTML=cs.map(c=>`<option value="${esc(c)}">`).join('');
+ const tf=$('#tagFilter').value;
+ let L=view==='done'?items.filter(i=>i.done):view==='overdue'?items.filter(isOver):openIn(view);
+ if(cf.value)L=L.filter(i=>i.customer===cf.value);if(tf)L=L.filter(i=>i.tags.includes(tf));
+ if(view==='overdue')L.sort((a,b)=>a.due<b.due?-1:1);else if(view==='done')L.sort((a,b)=>b.doneAt-a.doneAt);else L.sort((a,b)=>(b.top-a.top));
+ const f=openIn('focus').length;$('#count').textContent=view==='focus'?`${f}/${CAP} open · ${openIn('focus').filter(i=>i.top).length}/${TOPCAP} top`:`${L.length} item(s)`;
+ $('#add').style.display=(view==='focus'||view==='cold')?'flex':'none';
+ $('#list').innerHTML=L.map(i=>`<li class="${i.top?'top':''}" data-id="${i.id}"><button class="chk" data-a="done" aria-label="Done">${i.done?'↺':'○'}</button>
+ <div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}${i.customer?'👤 '+esc(i.customer)+' ':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}</span>`:''}${view!=='focus'&&view!=='cold'?' · '+(i.list==='focus'?'Focus':'Cold'):''}</div></div>
+ ${i.done?'':`<button class="mv" data-a="move">${i.list==='focus'?'→ Cold':'→ Focus'}</button>`}</li>`).join('')||'<li class="m">Nothing here.</li>';
+}
+$('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.closest('li').dataset.id;
+ if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else openEdit(id)});
+$('#tabs').addEventListener('click',e=>{if(e.target.dataset.v){view=e.target.dataset.v;render()}});
+$('#custFilter').onchange=$('#tagFilter').onchange=render;
+$('#tagFilter').innerHTML+=TAGS.map(t=>`<option>${t}</option>`).join('');
+$('#add').addEventListener('submit',e=>{e.preventDefault();if(add($('#addInput').value,view==='cold'?'cold':'focus'))$('#addInput').value=''});
+$('#tagBox').innerHTML+=TAGS.map(t=>`<label><input type="checkbox" name="tag" value="${t}">${t}</label>`).join('');
+let editing=null;
+function openEdit(id){editing=items.find(x=>x.id===id);const f=$('#editForm');f.title.value=editing.title;f.customer.value=editing.customer;f.due.value=editing.due;f.top.checked=editing.top;
+ f.querySelectorAll('[name=tag]').forEach(c=>c.checked=editing.tags.includes(c.value));$('#edit').showModal()}
+$('#edit').addEventListener('close',()=>{const r=$('#edit').returnValue,f=$('#editForm'),i=editing;if(!i)return;editing=null;
+ if(r==='delete'){if(confirm('Delete "'+i.title+'"?')){items=items.filter(x=>x!==i);save();render()}return}
+ if(r!=='save')return;
+ if(f.top.checked&&!i.top){if(i.list!=='focus'||i.done)toast('Top priority only applies to open Focus items.');else if(items.filter(x=>x.top&&!x.done).length>=TOPCAP)toast('Max 3 top priority items.');else i.top=true}else if(!f.top.checked)i.top=false;
+ i.title=f.title.value.trim()||i.title;i.customer=f.customer.value.trim();i.due=f.due.value;i.tags=[...f.querySelectorAll('[name=tag]:checked')].map(c=>c.value);save();render()});
+// export/import
+function toMd(){const sec=(n,l)=>`## ${n}\n`+items.filter(i=>i.list===l).map(i=>`- [${i.done?'x':' '}] ${i.title.replace(/\[/g,'(').replace(/\]/g,')')}`+(i.tags.length?` [tags: ${i.tags.join(', ')}]`:'')+(i.due?` [due: ${i.due}]`:'')+(i.customer?` [customer: ${i.customer}]`:'')+(i.top?' [top]':'')).join('\n');
+ return `# Hey Murph Export\n\n${sec('Focus List','focus')}\n\n${sec('Cold Storage','cold')}\n`}
+function parseMd(txt){let list=null;const out=[];for(const line of txt.split(/\r?\n/)){const h=line.match(/^#{1,6}\s*(.+)/);if(h){const n=h[1].toLowerCase();list=n.includes('focus')?'focus':n.includes('cold')?'cold':list;continue}
+ const m=line.match(/^\s*[-*]\s*\[( |x|X)\]\s*(.+)$/);if(!m||!list)continue;let rest=m[2];const o={done:m[1]!==' '};
+ rest=rest.replace(/\s*\[(tags|due|customer):\s*([^\]]*)\]/gi,(_,k,v)=>{k=k.toLowerCase();if(k==='tags')o.tags=v.split(',').map(s=>s.trim().toLowerCase());else o[k]=v.trim();return''}).replace(/\s*\[top\]/i,()=>{o.top=true;return''}).trim();
+ if(rest)out.push(mk(rest,list,o))}return out}
+function merge(newItems){let moved=0;for(const i of newItems){if(i.list==='focus'&&!i.done&&openIn('focus').length>=CAP){i.list='cold';i.top=false;moved++}
+ if(i.top&&items.filter(x=>x.top&&!x.done).length>=TOPCAP)i.top=false;items.push(i)}save();render();toast(`Imported ${newItems.length}`+(moved?`; ${moved} sent to Cold (Focus full)`:''))}
+async function share(name,text,type){const file=new File([text],name,{type});
+ try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}}catch(e){if(e.name==='AbortError')return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000)}
+$('#menuBtn').onclick=()=>$('#menu').showModal();
+$('#menu').addEventListener('close',()=>{const r=$('#menu').returnValue,d=today();
+ if(r==='md')share(`hey-murph-${d}.md`,toMd(),'text/markdown');
+ if(r==='json')share(`hey-murph-backup-${d}.json`,JSON.stringify({app:'hey-murph',version:1,exported:new Date().toISOString(),items},null,1),'application/json');
+ if(r==='importJson')$('#fileIn').click();if(r==='importMd'){$('#pasteText').value='';$('#paste').showModal()}});
+$('#paste').addEventListener('close',()=>{if($('#paste').returnValue==='ok'){const n=parseMd($('#pasteText').value);n.length?merge(n):toast('No items found in Markdown.')}});
+$('#fileIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const d=JSON.parse(await f.text());const arr=Array.isArray(d)?d:d.items;if(!Array.isArray(arr))throw 0;
+ if(!confirm(`Replace all current data with ${arr.length} items from backup?`))return;items=arr.map(x=>Object.assign(mk(x.title||'',x.list==='cold'?'cold':'focus',x),{id:x.id||uid(),created:x.created||Date.now(),doneAt:x.doneAt||null}));save();render();toast('Backup restored')}catch(_){toast('Not a valid Hey Murph backup.')}};
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
+render();

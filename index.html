@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Hey Murph</title><meta name="theme-color" content="#1f6feb">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hey Murph"><link rel="stylesheet" href="style.css"></head><body>
+<header><h1>Hey Murph</h1><button id="menuBtn" aria-label="Menu">⋯</button></header>
+<nav id="tabs"><button data-v="focus" class="on">Focus</button><button data-v="cold">Cold</button><button data-v="overdue">Overdue</button><button data-v="done">Done</button></nav>
+<div id="filters"><select id="custFilter"><option value="">All customers</option></select><select id="tagFilter"><option value="">All tags</option></select></div>
+<div id="count"></div><ul id="list"></ul>
+<form id="add"><input id="addInput" placeholder="Quick add to current list…" autocomplete="off"><button>Add</button></form>
+<div id="toast"></div>
+<dialog id="edit"><form method="dialog" id="editForm">
+<label>Title<input name="title" required></label>
+<label>Customer<input name="customer" list="custList"></label><datalist id="custList"></datalist>
+<label>Due<input name="due" type="date"></label>
+<fieldset id="tagBox"><legend>Tags</legend></fieldset>
+<label class="row"><input type="checkbox" name="top"> Top priority</label>
+<div class="btns"><button value="delete" class="danger" type="submit">Delete</button><button value="cancel" formnovalidate>Cancel</button><button value="save" class="primary">Save</button></div>
+</form></dialog>
+<dialog id="menu"><form method="dialog"><div class="col">
+<button value="md">Export Markdown</button><button value="json">Export JSON backup</button>
+<button value="importJson">Import JSON backup</button><button value="importMd">Import Markdown (paste)</button><button value="cancel">Close</button></div></form></dialog>
+<dialog id="paste"><form method="dialog"><textarea id="pasteText" rows="12" placeholder="Paste Hey Murph Markdown"></textarea>
+<div class="btns"><button value="cancel">Cancel</button><button value="ok" class="primary">Import</button></div></form></dialog>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+<script src="app.js"></script></body></html>
