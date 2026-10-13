@@ -20,24 +20,21 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 function render(){
  const hv=view==='habits'||view==='journal';$('#habits').hidden=view!=='habits';$('#journal').hidden=view!=='journal';['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
- const cs=[...new Set(items.map(i=>i.customer).filter(Boolean))].sort(),cf=$('#custFilter'),cur=cf.value;
- cf.innerHTML='<option value="">All customers</option>'+cs.map(c=>`<option>${esc(c)}</option>`).join('');cf.value=cs.includes(cur)?cur:'';
- $('#custList').innerHTML=cs.map(c=>`<option value="${esc(c)}">`).join('');
  const tf=$('#tagFilter').value;
  let L=hv?[]:view==='done'?items.filter(i=>i.done):view==='overdue'?items.filter(isOver):openIn(view);
- if(cf.value)L=L.filter(i=>i.customer===cf.value);if(tf)L=L.filter(i=>i.tags.includes(tf));
+ if(tf)L=L.filter(i=>i.tags.includes(tf));
  if(view==='overdue')L.sort((a,b)=>a.due<b.due?-1:1);else if(view==='done')L.sort((a,b)=>b.doneAt-a.doneAt);else L.sort((a,b)=>(b.top-a.top));
  const f=openIn('focus').length;$('#count').textContent=view==='focus'?`${f}/${CAP} open · ${openIn('focus').filter(i=>i.top).length}/${TOPCAP} top`:`${L.length} item(s)`;
  $('#quote').style.display=view==='focus'?'':'none';
  $('#add').style.display=(!hv&&view==='focus'||view==='focus'||view==='cold')?'flex':'none';
  $('#list').innerHTML=L.map(i=>`<li class="${i.top?'top':''}" data-id="${i.id}" style="--stripe:${i.tags[0]?TC[i.tags[0]]:i.top?'#f5c96a':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button>
- <div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.tags.map(t=>`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`).join('')}${i.jid?'📓 ':''}${i.customer?'👤 '+esc(i.customer)+' ':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}</span>`:''}${view!=='focus'&&view!=='cold'?' · '+(i.list==='focus'?'Focus':'Cold'):''}</div></div>
+ <div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.tags.map(t=>`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`).join('')}${i.jid?'📓 ':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}</span>`:''}${view!=='focus'&&view!=='cold'?' · '+(i.list==='focus'?'Focus':'Cold'):''}</div></div>
  ${i.done?'':`<button class="mv" data-a="move">${i.list==='focus'?'→ Cold':'→ Focus'}</button>`}</li>`).join('')||'<li class="empty">Nothing here. Clear skies.</li>';
 }
 $('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.closest('li').dataset.id;
  if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else openEdit(id)});
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){view=b.dataset.v;render()}});
-$('#custFilter').onchange=$('#tagFilter').onchange=render;
+$('#tagFilter').onchange=render;
 $('#tagFilter').innerHTML+=TAGS.map(t=>`<option>${t}</option>`).join('');
 $('#add').addEventListener('submit',e=>{e.preventDefault();if(add($('#addInput').value,view==='cold'?'cold':'focus'))$('#addInput').value=''});
 $('#tagBox').innerHTML+=TAGS.map(t=>`<label style="--c:${TC[t]}"><input type="checkbox" name="tag" value="${t}"><span>${t}</span></label>`).join('');
@@ -69,15 +66,15 @@ $('#habits').addEventListener('click',e=>{const b=e.target.closest('[data-ht],[d
  else{const h=H.habits[b.dataset.ht??b.dataset.h],d=b.dataset.d||dAgo(0);if(h.days[d])delete h.days[d];else h.days[d]=1}
  hsave();renderHabits()});
 let editing=null;
-function openEdit(id){editing=items.find(x=>x.id===id);const f=$('#editForm');f.title.value=editing.title;f.customer.value=editing.customer;f.due.value=editing.due;f.top.checked=editing.top;f.notes.value=editing.notes||'';
+function openEdit(id){editing=items.find(x=>x.id===id);const f=$('#editForm');f.title.value=editing.title;f.due.value=editing.due;f.top.checked=editing.top;f.notes.value=editing.notes||'';
  f.querySelectorAll('[name=tag]').forEach(c=>c.checked=editing.tags.includes(c.value));$('#edit').showModal()}
 $('#edit').addEventListener('close',()=>{const r=$('#edit').returnValue,f=$('#editForm'),i=editing;if(!i)return;editing=null;
  if(r==='delete'){if(confirm('Delete "'+i.title+'"?')){items=items.filter(x=>x!==i);save();render()}return}
  if(r!=='save')return;
  if(f.top.checked&&!i.top){if(i.list!=='focus'||i.done)toast('Top priority only applies to open Focus items.');else if(items.filter(x=>x.top&&!x.done).length>=TOPCAP)toast('Max 3 top priority items.');else i.top=true}else if(!f.top.checked)i.top=false;
- i.title=f.title.value.trim()||i.title;i.customer=f.customer.value.trim();i.due=f.due.value;if(f.notes.value.trim()||i.notes)i.notes=f.notes.value;i.tags=[...f.querySelectorAll('[name=tag]:checked')].map(c=>c.value);save();render()});
+ i.title=f.title.value.trim()||i.title;i.due=f.due.value;if(f.notes.value.trim()||i.notes)i.notes=f.notes.value;i.tags=[...f.querySelectorAll('[name=tag]:checked')].map(c=>c.value);save();render()});
 // export/import
-function toMd(){const sec=(n,l)=>`## ${n}\n`+items.filter(i=>i.list===l).map(i=>`- [${i.done?'x':' '}] ${i.title.replace(/\[/g,'(').replace(/\]/g,')')}`+(i.tags.length?` [tags: ${i.tags.join(', ')}]`:'')+(i.due?` [due: ${i.due}]`:'')+(i.customer?` [customer: ${i.customer}]`:'')+(i.top?' [top]':'')).join('\n');
+function toMd(){const sec=(n,l)=>`## ${n}\n`+items.filter(i=>i.list===l).map(i=>`- [${i.done?'x':' '}] ${i.title.replace(/\[/g,'(').replace(/\]/g,')')}`+(i.tags.length?` [tags: ${i.tags.join(', ')}]`:'')+(i.due?` [due: ${i.due}]`:'')+(i.top?' [top]':'')).join('\n');
  return `# Hey Murph Export\n\n${sec('Focus List','focus')}\n\n${sec('Cold Storage','cold')}\n`}
 function parseMd(txt){let list=null;const out=[];for(const line of txt.split(/\r?\n/)){const h=line.match(/^#{1,6}\s*(.+)/);if(h){const n=h[1].toLowerCase();list=n.includes('focus')?'focus':n.includes('cold')?'cold':list;continue}
  const m=line.match(/^\s*[-*]\s*\[( |x|X)\]\s*(.+)$/);if(!m||!list)continue;let rest=m[2];const o={done:m[1]!==' '};

@@ -7,7 +7,7 @@
 <div class="bgfx" aria-hidden="true"></div><header><div><div id="greet" class="greet">Hello, sir</div><h1><span class="logo"></span>Hey Murph</h1><div id="dateLine" class="date"></div></div><button id="menuBtn" class="icon" aria-label="Menu">⋯</button></header>
 <main>
 <figure id="quote" role="button" tabindex="0" aria-label="Tesseract quote, tap for next"><div class="qk">The Tesseract</div><blockquote id="qText"></blockquote><figcaption>— Kannan Mohanan <span class="qn">tap for next ›</span></figcaption></figure>
-<div id="filters"><select id="custFilter"><option value="">All customers</option></select><select id="tagFilter"><option value="">All tags</option></select></div>
+<div id="filters"><select id="tagFilter"><option value="">All tags</option></select></div>
 <section id="habits" hidden></section><section id="journal" hidden></section><div id="count"></div><ul id="list"></ul>
 </main>
 <form id="add"><input id="addInput" placeholder="Quick add to current list…" autocomplete="off"><button>Add</button></form>
@@ -15,7 +15,6 @@
 <div id="toast"></div>
 <dialog id="edit"><form method="dialog" id="editForm">
 <label>Title<input name="title" required></label>
-<label>Customer<input name="customer" list="custList"></label><datalist id="custList"></datalist>
 <label>Due<input name="due" type="date"></label>
 <label>Notes<textarea name="notes" rows="3"></textarea></label>
 <fieldset id="tagBox"><legend>Tags</legend></fieldset>
@@ -31,7 +30,7 @@
 <div class="jrow"><button data-j="b"><b>B</b> Bold</button><button data-j="h"><mark>H</mark> Highlight</button></div>
 <textarea name="text" rows="6"></textarea><div id="jprev" class="jb jprev"></div>
 <label>Essence (one line)<input name="essence" maxlength="160"></label>
-<div class="jrow"><select name="type"><option value="">Type</option><option>Idea</option><option>Quote</option><option>Note</option><option>Link</option><option>Decision</option></select><input name="customer" list="custList" placeholder="Customer"></div>
+<div class="jrow"><select name="type"><option value="">Type</option><option>Idea</option><option>Quote</option><option>Note</option><option>Link</option><option>Decision</option></select></div>
 <div class="jrow"><button data-j="proc" class="s-processed">Mark processed</button><button data-j="unproc">Back to Record</button></div>
 <div class="jlab">Execute</div><div class="jrow"><button data-j="focus" class="d-focus">→ Focus List</button><button data-j="cold" class="d-cold">→ Cold</button><button data-j="notes" class="d-notes">→ Notes</button></div>
 <div class="btns"><button data-j="del" class="danger">Delete</button><button data-j="cancel">Cancel</button><button data-j="save" class="primary">Save</button></div></form></dialog>
