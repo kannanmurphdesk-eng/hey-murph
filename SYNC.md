@@ -34,14 +34,18 @@ All times are **milliseconds since epoch (UTC)**, e.g. JavaScript `Date.now()`, 
 {"id":"mv6to12wp2e2x","text":"Call **Acme** about ==renewal==","type":"Decision","created":1791904489592,
  "stage":"record","essence":"","processedAt":null,"exec":null,"updatedAt":1791904489592}
 ```
-- `type`: `Idea | Quote | Note | Link | Decision | Review | ""`. `stage`: `"record"` or `"processed"`.
+- Optional `tid`: the id of the done task an Insight came from.
+- `type`: `Idea | Quote | Note | Link | Decision | Review | Insight | ""`. `stage`: `"record"` or `"processed"`.
 - `exec`: `null` or `{"dest":"focus"|"cold"|"notes","at":<ms>,"taskId":"<task id, if any>"}`.
 
 ### Habits (`habits`)
 `{"habits":[{"name":"Walk","color":"#ff8a3d","days":{"2026-10-13":1}}, …],"updatedAt":<ms>}`. Habits merge as **one block**: the newest `habits.updatedAt` wins as a whole.
 
 ### Meta (`meta`)
-`{"lastReviewAt":<ms>,"updatedAt":<ms>}`. This is the time of the last anytime Review. It merges as one block, so the newest `meta.updatedAt` wins. A review is also saved as a journal entry with `"type":"Review"`, `"stage":"processed"` and `"exec":{"dest":"notes","at":<ms>}`. The app treats the later of `meta.lastReviewAt` and the newest Review entry's `created` as the last review. To record a review, add that entry, then set `meta.lastReviewAt` and bump `meta.updatedAt` (`hm.py review` does both).
+`{"lastReviewAt":<ms>,"updatedAt":<ms>,"lastReview":{"processed":0,"executed":0,"deleted":0,"skipped":0}}`. This records the last **Journal review**: stepping through Record entries to process and execute them. It merges as one block, so the newest `meta.updatedAt` wins. `lastReview` is optional stats. A review saves a journal entry (`"type":"Review"`, processed, executed to notes) only if an insight was written. The app uses the later of `meta.lastReviewAt` and the newest Review entry's `created`. To record a review, set `meta.lastReviewAt` and bump `meta.updatedAt` (`hm.py review [--insight …]`).
+
+### Insights from done tasks
+An insight is a normal journal entry: `"type":"Insight"`, `"stage":"processed"`, `"exec":{"dest":"notes","at":<ms>}`, `"tid":"<done task id>"`, and `text` starting with `From done: <task title>`. A task "has an insight" (💡) when such an entry with its `tid` exists. The task itself is not modified, so nothing extra needs to merge. Add one with `hm.py insight REF "text"`.
 
 ## How merging works
 - Tasks and journal entries are matched by `id`. **The copy with the larger `updatedAt` wins** (a tie keeps the phone's copy).

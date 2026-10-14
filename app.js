@@ -28,11 +28,11 @@ function render(){
  $('#quote').style.display=view==='focus'?'':'none';
  $('#add').style.display=(!hv&&view==='focus'||view==='focus'||view==='cold')?'flex':'none';
  $('#list').innerHTML=L.map(i=>`<li class="${i.top?'top':''}" data-id="${i.id}" style="--stripe:${i.tags[0]?TC[i.tags[0]]:i.top?'#f5c96a':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button>
- <div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.tags.map(t=>`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`).join('')}${i.jid?'📓 ':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span>`:''}${view!=='focus'&&view!=='cold'?' · '+(i.list==='focus'?'Focus':'Cold Storage'):''}</div></div>
- ${i.done?'':`<button class="mv" data-a="move">${i.list==='focus'?'→ Cold Storage':'→ Focus'}</button>`}</li>`).join('')||'<li class="empty">Nothing here. Clear skies.</li>';
+ <div class="body" data-a="edit"><div class="t">${esc(i.title)}${i.done&&typeof hasInsight==='function'&&hasInsight(i.id)?' <span class="insm" title="Has insight">💡</span>':''}</div><div class="m">${i.tags.map(t=>`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`).join('')}${i.jid?'📓 ':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span>`:''}${view!=='focus'&&view!=='cold'?' · '+(i.list==='focus'?'Focus':'Cold Storage'):''}</div></div>
+ ${i.done?(typeof hasInsight==='function'?`<button class="mv ins${hasInsight(i.id)?' has':''}" data-a="insight">${hasInsight(i.id)?'💡':'💡 Insight'}</button>`:''):`<button class="mv" data-a="move">${i.list==='focus'?'→ Cold Storage':'→ Focus'}</button>`}</li>`).join('')||'<li class="empty">Nothing here. Clear skies.</li>';
 }
 $('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.closest('li').dataset.id;
- if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else openEdit(id)});
+ if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else if(a.dataset.a==='insight')openInsight(id);else openEdit(id)});
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){view=b.dataset.v;render()}});
 $('#tagFilter').onchange=render;
 $('#tagFilter').innerHTML+=TAGS.map(t=>`<option>${t}</option>`).join('');

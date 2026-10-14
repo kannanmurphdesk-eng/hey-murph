@@ -30,14 +30,11 @@
 <div class="jrow"><button data-j="b"><b>B</b> Bold</button><button data-j="h"><mark>H</mark> Highlight</button></div>
 <textarea name="text" rows="6"></textarea><div id="jprev" class="jb jprev"></div>
 <label>Essence (one line)<input name="essence" maxlength="160"></label>
-<div class="jrow"><select name="type"><option value="">Type</option><option>Idea</option><option>Quote</option><option>Note</option><option>Link</option><option>Decision</option><option>Review</option></select></div>
+<div class="jrow"><select name="type"><option value="">Type</option><option>Idea</option><option>Quote</option><option>Note</option><option>Link</option><option>Decision</option><option>Review</option><option>Insight</option></select></div>
 <div class="jrow"><button data-j="proc" class="s-processed">Mark processed</button><button data-j="unproc">Back to Record</button></div>
 <div class="jlab">Execute</div><div class="jrow"><button data-j="focus" class="d-focus">→ Focus List</button><button data-j="cold" class="d-cold">→ Cold Storage</button><button data-j="notes" class="d-notes">→ Notes</button></div>
 <div class="btns"><button data-j="del" class="danger">Delete</button><button data-j="cancel">Cancel</button><button data-j="save" class="primary">Save</button></div></form></dialog>
-<dialog id="rvSheet"><form method="dialog" id="rvForm"><div class="rvh">Review</div><div id="rvCtx"></div>
-<label>What got done, and did it move the needle?<textarea rows="3"></textarea></label>
-<label>What's been sitting too long? Drop it or demote it.<textarea rows="3"></textarea></label>
-<label>What did I learn that changes the next ten?<textarea rows="3"></textarea></label>
-<div class="btns"><button value="cancel" formnovalidate>Cancel</button><button value="save" class="primary">Save review</button></div></form></dialog>
+<dialog id="insSheet"><div id="insBody"></div></dialog>
+<dialog id="rvSheet"><div id="rvBody"></div></dialog>
 <input type="file" id="fileIn" accept=".json,application/json" hidden>
-<script src="config.js"></script><script src="app.js"></script><script src="journal.js"></script><script src="review.js"></script><script src="sync-core.js"></script><script src="sync.js"></script><script src="lock.js"></script></body></html>
+<script src="config.js"></script><script src="app.js"></script><script src="journal.js"></script><script src="review.js"></script><script src="insight.js"></script><script src="sync-core.js"></script><script src="sync.js"></script><script src="lock.js"></script></body></html>

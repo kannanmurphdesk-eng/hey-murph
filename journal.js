@@ -1,6 +1,6 @@
 'use strict';
 // ===== Journal: Record → Process → Execute (key heymurph.journal.v1) =====
-const JKEY='heymurph.journal.v1',JTYPES=['Idea','Quote','Note','Link','Decision','Review'];
+const JKEY='heymurph.journal.v1',JTYPES=['Idea','Quote','Note','Link','Decision','Review','Insight'];
 const JF={inbox:'Record',processed:'Process',exec:'Executed',notes:'Notes',all:'All'};
 const DEST={focus:'Focus List',cold:'Cold Storage',notes:'Notes'};
 function jload(){try{const j=JSON.parse(localStorage.getItem(JKEY));if(Array.isArray(j))return j}catch(e){}return[]}
@@ -14,7 +14,7 @@ const jlevel=e=>e.essence&&e.essence.trim()?'Summarised':/==[^=]+==/.test(e.text
 const jfmt=s=>esc(s).replace(/\*\*([^*]+?)\*\*/g,'<b>$1</b>').replace(/==([^=]+?)==/g,'<mark>$1</mark>').replace(/\n/g,'<br>');
 const jtitle=e=>(e.essence&&e.essence.trim())||e.text.split('\n').find(l=>l.trim())?.replace(/\*\*|==/g,'').trim().slice(0,120)||'(empty)';
 function jnorm(x){return{id:x.id||uid(),text:String(x.text||''),type:JTYPES.includes(x.type)?x.type:'',customer:String(x.customer||''),created:+x.created||Date.now(),
- stage:x.stage==='processed'?'processed':'record',essence:String(x.essence||''),processedAt:x.processedAt||null,exec:x.exec&&DEST[x.exec.dest]?x.exec:null}}
+ stage:x.stage==='processed'?'processed':'record',...(x.tid?{tid:String(x.tid)}:{}),essence:String(x.essence||''),processedAt:x.processedAt||null,exec:x.exec&&DEST[x.exec.dest]?x.exec:null}}
 function jlist(){let L=J.filter(e=>jf==='all'||(jf==='notes'?e.exec&&e.exec.dest==='notes':jf==='exec'?!!e.exec:jstage(e)===jf));
  if(jq){const q=jq.toLowerCase();L=L.filter(e=>(e.text+' '+e.essence+' '+e.type).toLowerCase().includes(q))}
  return L.sort((a,b)=>b.created-a.created)}
