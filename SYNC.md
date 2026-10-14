@@ -1,6 +1,6 @@
 # Hey Murph — Dropbox sync file format
 
-The app syncs with **one file in the Dropbox app folder**: `Apps/<app name>/heymurph-data.json`
+The app syncs with **one file in the Dropbox app folder**: `Apps/HeyMurphSync/heymurph-data.json`
 (the app sees it as `/heymurph-data.json`). Every sync downloads the file, merges it with the phone's data, and uploads the result (overwriting the file).
 
 ## Structure
