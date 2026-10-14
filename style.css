@@ -150,3 +150,5 @@ h1 .logo{width:30px;height:30px;display:inline-block;vertical-align:-4px;margin-
 .sync[data-s=offline]{color:#FFB83F}.sync[data-s=error]{color:#ff6b7a;border-color:#ff6b7a88}.sync[data-s=nocfg],.sync[data-s=off]{color:var(--mut)}
 #syncLine{font-size:11.5px}#syncLine[data-s=error]{color:#ff6b7a}#syncLine[data-s=offline]{color:#FFB83F}
 @keyframes spin{to{transform:rotate(360deg)}}
+.od{color:#ff5470;font-weight:700}
+#tabs button{white-space:nowrap;font-size:11px}#tabs button[data-v=cold]{flex:1.35}

@@ -21,15 +21,15 @@ function render(){
  const hv=view==='habits'||view==='journal';$('#habits').hidden=view!=='habits';$('#journal').hidden=view!=='journal';['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
  const tf=$('#tagFilter').value;
- let L=hv?[]:view==='done'?items.filter(i=>i.done):view==='overdue'?items.filter(isOver):openIn(view);
+ let L=hv?[]:view==='done'?items.filter(i=>i.done):openIn(view);
  if(tf)L=L.filter(i=>i.tags.includes(tf));
- if(view==='overdue')L.sort((a,b)=>a.due<b.due?-1:1);else if(view==='done')L.sort((a,b)=>b.doneAt-a.doneAt);else L.sort((a,b)=>(b.top-a.top));
+ if(view==='done')L.sort((a,b)=>b.doneAt-a.doneAt);else L.sort((a,b)=>(b.top-a.top));
  const f=openIn('focus').length;$('#count').textContent=view==='focus'?`${f}/${CAP} open · ${openIn('focus').filter(i=>i.top).length}/${TOPCAP} top`:`${L.length} item(s)`;
  $('#quote').style.display=view==='focus'?'':'none';
  $('#add').style.display=(!hv&&view==='focus'||view==='focus'||view==='cold')?'flex':'none';
  $('#list').innerHTML=L.map(i=>`<li class="${i.top?'top':''}" data-id="${i.id}" style="--stripe:${i.tags[0]?TC[i.tags[0]]:i.top?'#f5c96a':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button>
- <div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.tags.map(t=>`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`).join('')}${i.jid?'📓 ':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}</span>`:''}${view!=='focus'&&view!=='cold'?' · '+(i.list==='focus'?'Focus':'Cold'):''}</div></div>
- ${i.done?'':`<button class="mv" data-a="move">${i.list==='focus'?'→ Cold':'→ Focus'}</button>`}</li>`).join('')||'<li class="empty">Nothing here. Clear skies.</li>';
+ <div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.tags.map(t=>`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`).join('')}${i.jid?'📓 ':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span>`:''}${view!=='focus'&&view!=='cold'?' · '+(i.list==='focus'?'Focus':'Cold Storage'):''}</div></div>
+ ${i.done?'':`<button class="mv" data-a="move">${i.list==='focus'?'→ Cold Storage':'→ Focus'}</button>`}</li>`).join('')||'<li class="empty">Nothing here. Clear skies.</li>';
 }
 $('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.closest('li').dataset.id;
  if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else openEdit(id)});
@@ -81,7 +81,7 @@ function parseMd(txt){let list=null;const out=[];for(const line of txt.split(/\r
  rest=rest.replace(/\s*\[(tags|due|customer):\s*([^\]]*)\]/gi,(_,k,v)=>{k=k.toLowerCase();if(k==='tags')o.tags=v.split(',').map(s=>s.trim().toLowerCase());else o[k]=v.trim();return''}).replace(/\s*\[top\]/i,()=>{o.top=true;return''}).trim();
  if(rest)out.push(mk(rest,list,o))}return out}
 function merge(newItems){let moved=0;for(const i of newItems){if(i.list==='focus'&&!i.done&&openIn('focus').length>=CAP){i.list='cold';i.top=false;moved++}
- if(i.top&&items.filter(x=>x.top&&!x.done).length>=TOPCAP)i.top=false;items.push(i)}save();render();toast(`Imported ${newItems.length}`+(moved?`; ${moved} sent to Cold (Focus full)`:''))}
+ if(i.top&&items.filter(x=>x.top&&!x.done).length>=TOPCAP)i.top=false;items.push(i)}save();render();toast(`Imported ${newItems.length}`+(moved?`; ${moved} sent to Cold Storage (Focus full)`:''))}
 async function share(name,text,type){const file=new File([text],name,{type});
  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}}catch(e){if(e.name==='AbortError')return}
  const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000)}
