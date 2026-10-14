@@ -12,3 +12,6 @@ Offline-first task tracker PWA (pilot). Pure static HTML/CSS/vanilla JS — no b
 Markdown format: `- [ ] Title [tags: quick wins, overdue] [due: 2026-10-20] [customer: Acme] [top]` under `## Focus List` / `## Cold Storage`.
 
 Export a JSON backup regularly — iOS may clear website data for home-screen apps not used for a while.
+
+## Dropbox sync
+Two-way sync with `Apps/<app name>/heymurph-data.json` (OAuth 2 PKCE, App-folder scope). Set `DROPBOX_APP_KEY` in `config.js`. The file format is described in [SYNC.md](SYNC.md). Tests: `node --test test/`.

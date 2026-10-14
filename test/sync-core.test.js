@@ -1,0 +1,22 @@
+const test=require('node:test'),assert=require('node:assert');const C=require('../sync-core.js');
+const T=(id,u,x={})=>Object.assign({id,title:id,updatedAt:u},x);
+test('newest updatedAt wins per id',()=>{const m=C.mergeList([T('a',5,{title:'L'}),T('b',1)],[T('a',9,{title:'R'}),T('b',0,{title:'old'}),T('c',3)]);
+ const by=Object.fromEntries(m.map(x=>[x.id,x]));assert.equal(by.a.title,'R');assert.equal(by.b.title,'b');assert.ok(by.c)});
+test('tie keeps local',()=>{assert.equal(C.mergeList([T('a',5,{title:'L'})],[T('a',5,{title:'R'})])[0].title,'L')});
+test('tombstone beats older edit, newer edit beats tombstone',()=>{
+ assert.ok(C.mergeList([T('a',5)],[{id:'a',deleted:true,updatedAt:6}])[0].deleted);
+ assert.ok(!C.mergeList([T('a',7)],[{id:'a',deleted:true,updatedAt:6}])[0].deleted)});
+test('stamp: lazy migration, edits, deletions',()=>{let items=[{id:'a',title:'x',created:100},{id:'b',title:'y',created:200}],tombs={};
+ let r=C.stampList(items,{},tombs,1000);assert.equal(items[0].updatedAt,100);assert.equal(items[1].updatedAt,200);
+ items[0].title='edited';r=C.stampList(items,r.shadow,tombs,2000);assert.equal(items[0].updatedAt,2000);assert.equal(items[1].updatedAt,200);
+ items.push({id:'c',title:'new',created:2500});r=C.stampList(items,r.shadow,tombs,3000);assert.equal(items[2].updatedAt,3000);
+ items=items.filter(x=>x.id!=='b');r=C.stampList(items,r.shadow,tombs,4000);assert.deepEqual(tombs,{b:4000});
+ const w=C.withTombs(items,tombs);assert.equal(w.length,3);assert.deepEqual(C.split(w).tombs,{b:4000});assert.equal(C.split(w).live.length,2)});
+test('mergeDoc: habits LWW, legacy remote without updatedAt, sameDoc',()=>{const L={items:[T('a',5)],journal:[{id:'j',text:'hi',updatedAt:3}],habits:{habits:[{name:'L'}],updatedAt:10}};
+ const R={items:[{id:'a',title:'legacy'},{id:'z',title:'murph'}],habits:{habits:[{name:'R'}],updatedAt:20}};
+ const m=C.mergeDoc(L,R);assert.equal(m.habits.habits[0].name,'R');assert.equal(m.items.find(x=>x.id==='a').updatedAt,5);assert.ok(m.items.find(x=>x.id==='z'));assert.equal(m.journal.length,1);
+ assert.equal(m.updatedAt,20);assert.ok(!C.sameDoc(R,m));assert.ok(C.sameDoc(m,C.mergeDoc(m,m)));assert.ok(!C.sameDoc(null,m))});
+test('two devices converge',()=>{const A={items:[T('a',1),T('b',1)],journal:[],habits:{habits:[],updatedAt:0}};const B=JSON.parse(JSON.stringify(A));
+ A.items[0]=T('a',10,{title:'A edit'});B.items=[T('a',1),{id:'b',deleted:true,updatedAt:12},T('c',11)];
+ const r1=C.mergeDoc(A,null),r2=C.mergeDoc(B,r1),r3=C.mergeDoc(A,r2);assert.ok(C.sameDoc(r2,r3));
+ const by=Object.fromEntries(r3.items.map(x=>[x.id,x]));assert.equal(by.a.title,'A edit');assert.ok(by.b.deleted);assert.ok(by.c)});

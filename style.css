@@ -145,3 +145,8 @@ li .chk.on{background:var(--grad)}
 h1 .logo{width:30px;height:30px;display:inline-block;vertical-align:-4px;margin-right:0;filter:drop-shadow(0 0 10px rgba(95,123,255,.35))}
 #tabs button[data-v=focus]{--t:#5F7BFF}#tabs button[data-v=cold]{--t:#3ED1C0}#tabs button[data-v=overdue]{--t:#FF6B7A}#tabs button[data-v=habits]{--t:#FFB83F}
 #journal button.primary,#jform button.primary{background:linear-gradient(90deg,#5F7BFF,#3ED1C0)}
+/* sync */
+.hbtns{display:flex;gap:8px}.sync{font-size:17px}.sync[data-s=synced],.sync[data-s=idle]{color:#3ddc84}.sync[data-s=syncing] span{display:inline-block;animation:spin 1s linear infinite;color:#5F7BFF}
+.sync[data-s=offline]{color:#FFB83F}.sync[data-s=error]{color:#ff6b7a;border-color:#ff6b7a88}.sync[data-s=nocfg],.sync[data-s=off]{color:var(--mut)}
+#syncLine{font-size:11.5px}#syncLine[data-s=error]{color:#ff6b7a}#syncLine[data-s=offline]{color:#FFB83F}
+@keyframes spin{to{transform:rotate(360deg)}}
