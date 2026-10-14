@@ -152,3 +152,16 @@ h1 .logo{width:30px;height:30px;display:inline-block;vertical-align:-4px;margin-
 @keyframes spin{to{transform:rotate(360deg)}}
 .od{color:#ff5470;font-weight:700}
 #tabs button{white-space:nowrap;font-size:11px}#tabs button[data-v=cold]{flex:1.35}
+/* PIN lock */
+html.locked body>*:not(#lock){visibility:hidden}
+#lock{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:radial-gradient(120% 60% at 80% -10%,#1b2460 0%,transparent 60%),radial-gradient(90% 50% at -10% 30%,#1a1240 0%,transparent 60%),#070b18;padding:env(safe-area-inset-top) 20px env(safe-area-inset-bottom)}
+#lock[hidden]{display:none}.lk-in{width:min(320px,100%);text-align:center}
+.lk-logo{width:84px;height:84px;filter:drop-shadow(0 0 22px rgba(95,123,255,.45))}.lk-t{font-size:24px;font-weight:700;margin-top:6px;background:linear-gradient(90deg,#fff,#c9b6ff 45%,#7fe3ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lk-msg{color:var(--mut);margin:14px 0 10px;min-height:1.4em;font-size:15px}.lk-msg.bad{color:#ff6b7a}
+.lk-dots{display:flex;gap:16px;justify-content:center;margin-bottom:22px}.lk-dots i{width:14px;height:14px;border-radius:50%;border:2px solid #8a93b2}
+.lk-dots i.on{background:linear-gradient(135deg,#5F7BFF,#3ED1C0);border-color:transparent;box-shadow:0 0 10px #5F7BFF}
+.lk-dots.shake{animation:lkshake .35s}@keyframes lkshake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+.lk-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;justify-items:center}
+.lk-pad button{width:72px;height:72px;border-radius:50%;font-size:26px;font-weight:600;background:rgba(255,255,255,.06);border:1px solid var(--line)}
+.lk-pad button.lk-sm{font-size:15px;background:transparent;border-color:transparent;color:var(--mut)}
+.lk-forgot{margin-top:18px;background:none;border:0;color:#a9b8ff;font-size:14px}

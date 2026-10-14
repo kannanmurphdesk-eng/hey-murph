@@ -7,12 +7,12 @@ let S;try{S=JSON.parse(localStorage.getItem(SK))||{}}catch(e){S={}}S.sh=S.sh||{}
 const rawSet=Storage.prototype.setItem;let quiet=false,timer=null,busy=false,again=false,state='idle',errMsg='';
 const ssave=()=>rawSet.call(localStorage,SK,JSON.stringify(S));
 // --- stamp local changes (lazy migration: adds updatedAt, records tombstones)
-function stamp(){const now=Date.now();
+function stamp(){if(window.__hmReset)return;const now=Date.now();
  const a=C.stampList(items,S.sh.items||{},S.tomb.items,now);S.sh.items=a.shadow;
  const b=C.stampList(J,S.sh.journal||{},S.tomb.journal,now);S.sh.journal=b.shadow;
  S.sh.habits=C.stampObj(H,S.sh.habits,now);
  quiet=true;try{localStorage.setItem('heymurph.v1',JSON.stringify(items));localStorage.setItem('heymurph.journal.v1',JSON.stringify(J));localStorage.setItem('heymurph.habits.v1',JSON.stringify(H))}finally{quiet=false}ssave()}
-Storage.prototype.setItem=function(k,v){rawSet.call(this,k,v);if(!quiet&&this===localStorage&&KEYS.includes(k)){clearTimeout(stamp.t);stamp.t=setTimeout(()=>{stamp();schedule(2500)},0)}};
+Storage.prototype.setItem=function(k,v){if(window.__hmReset&&KEYS.includes(k))return;rawSet.call(this,k,v);if(!quiet&&this===localStorage&&KEYS.includes(k)){clearTimeout(stamp.t);stamp.t=setTimeout(()=>{stamp();schedule(2500)},0)}};
 function localDoc(){return{items:C.withTombs(items,S.tomb.items),journal:C.withTombs(J,S.tomb.journal),habits:H}}
 function applyDoc(d){const a=C.split(d.items),b=C.split(d.journal);items=a.live;J=b.live;if(d.habits&&Array.isArray(d.habits.habits))H=d.habits;S.tomb={items:a.tombs,journal:b.tombs};
  quiet=true;try{localStorage.setItem('heymurph.v1',JSON.stringify(items));localStorage.setItem('heymurph.journal.v1',JSON.stringify(J));localStorage.setItem('heymurph.habits.v1',JSON.stringify(H))}finally{quiet=false}
@@ -45,7 +45,7 @@ async function download(){const r=await dbx('https://content.dropboxapi.com/2/fi
 async function upload(doc){const r=await dbx('https://content.dropboxapi.com/2/files/upload',{method:'POST',headers:{'Content-Type':'application/octet-stream','Dropbox-API-Arg':JSON.stringify({path:FILE,mode:'overwrite',mute:true})},body:JSON.stringify(doc,null,1)});
  if(!r.ok)throw new Error('upload '+r.status+' '+(await r.text()).slice(0,120))}
 // --- sync
-async function sync(){if(!key){ui('nocfg');return}if(!S.rt){ui('off');return}if(!navigator.onLine){ui('offline');return}
+async function sync(){if(window.__hmReset)return;if(!key){ui('nocfg');return}if(!S.rt){ui('off');return}if(!navigator.onLine){ui('offline');return}
  if(busy){again=true;return}busy=true;ui('syncing');
  try{stamp();const remote=await download();const merged=C.mergeDoc(localDoc(),remote);
   const same=C.sameDoc(remote,merged);

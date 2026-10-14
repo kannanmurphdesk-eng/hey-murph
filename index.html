@@ -3,7 +3,7 @@
 <title>Hey Murph</title><meta name="theme-color" content="#070b18">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" href="icons/favicon.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Hey Murph"><link rel="stylesheet" href="style.css"></head><body>
+<meta name="apple-mobile-web-app-title" content="Hey Murph"><link rel="stylesheet" href="style.css"><script>try{if(localStorage.getItem('heymurph.pin.v1'))document.documentElement.classList.add('locked')}catch(e){}</script></head><body>
 <div class="bgfx" aria-hidden="true"></div><header><div><div id="greet" class="greet">Hello, sir</div><h1><img class="logo" src="icons/logo.png" alt="" width="30" height="30">Hey Murph</h1><div id="dateLine" class="date"></div></div><button id="menuBtn" class="icon" aria-label="Menu">⋯</button></header>
 <main>
 <figure id="quote" role="button" tabindex="0" aria-label="Tesseract quote, tap for next"><div class="qk">The Tesseract</div><blockquote id="qText"></blockquote><figcaption>— Kannan Mohanan <span class="qn">tap for next ›</span></figcaption></figure>
@@ -35,4 +35,4 @@
 <div class="jlab">Execute</div><div class="jrow"><button data-j="focus" class="d-focus">→ Focus List</button><button data-j="cold" class="d-cold">→ Cold Storage</button><button data-j="notes" class="d-notes">→ Notes</button></div>
 <div class="btns"><button data-j="del" class="danger">Delete</button><button data-j="cancel">Cancel</button><button data-j="save" class="primary">Save</button></div></form></dialog>
 <input type="file" id="fileIn" accept=".json,application/json" hidden>
-<script src="config.js"></script><script src="app.js"></script><script src="journal.js"></script><script src="sync-core.js"></script><script src="sync.js"></script></body></html>
+<script src="config.js"></script><script src="app.js"></script><script src="journal.js"></script><script src="sync-core.js"></script><script src="sync.js"></script><script src="lock.js"></script></body></html>
