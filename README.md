@@ -5,7 +5,7 @@ Offline-first task tracker PWA (pilot). Pure static HTML/CSS/vanilla JS — no b
 **Live:** https://kannanmurphdesk-eng.github.io/hey-murph/ — open on your phone, then "Add to Home Screen" (iPhone: Safari → Share → Add to Home Screen).
 
 - Focus List (max 10 open, max 3 ★ top priority) and Cold Storage, one-tap move
-- Five fixed tags: damage control, preventive damage control, overdue, quick wins, delegation
+- Six fixed tags: damage control, preventive damage control, overdue, quick wins, delegation, necessary task
 - Due dates + Overdue view, optional customer with filter, Done view, edit/delete with confirm
 - Export Markdown / JSON backup (share sheet or download); import JSON or pasted Markdown
 

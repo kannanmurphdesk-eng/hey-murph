@@ -1,6 +1,6 @@
 'use strict';
-const TAGS=['damage control','preventive damage control','overdue','quick wins','delegation'];
-const TC={'damage control':'#ff6b5e','preventive damage control':'#ffb547','overdue':'#ff4fb4','quick wins':'#3ddc84','delegation':'#2fd3e0'};
+const TAGS=['damage control','preventive damage control','overdue','quick wins','delegation','necessary task'];
+const TC={'damage control':'#ff6b5e','preventive damage control':'#ffb547','overdue':'#ff4fb4','quick wins':'#3ddc84','delegation':'#2fd3e0','necessary task':'#a66bff'};
 const CAP=10,TOPCAP=3,KEY='heymurph.v1';
 let items=load(),view='focus';
 const $=s=>document.querySelector(s);

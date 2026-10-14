@@ -24,7 +24,7 @@ All times are **milliseconds since epoch (UTC)**, e.g. JavaScript `Date.now()`, 
  "customer":"","top":false,"done":false,"created":1791904490510,"doneAt":null,
  "notes":"optional","jid":"optional journal id","updatedAt":1791904490510}
 ```
-- `list`: `"focus"` or `"cold"`. Tags must be from: `damage control`, `preventive damage control`, `overdue`, `quick wins`, `delegation`.
+- `list`: `"focus"` or `"cold"`. Tags must be from: `damage control`, `preventive damage control`, `overdue`, `quick wins`, `delegation`, `necessary task`.
 - The Focus List holds max 10 open items and max 3 `top` items. Please respect that when adding.
 - `customer` is legacy and ignored by the UI.
 
