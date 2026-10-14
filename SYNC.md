@@ -12,7 +12,8 @@ The app syncs with **one file in the Dropbox app folder**: `Apps/HeyMurphSync/he
   "updatedAt": 1791961580722,
   "items":   [ /* tasks */ ],
   "journal": [ /* journal entries */ ],
-  "habits":  { "habits": [ /* 2 habits */ ], "updatedAt": 1791961580722 }
+  "habits":  { "habits": [ /* 2 habits */ ], "updatedAt": 1791961580722 },
+  "meta":    { "lastReviewAt": 1791993897141, "updatedAt": 1791993897141 }
 }
 ```
 
@@ -33,11 +34,14 @@ All times are **milliseconds since epoch (UTC)**, e.g. JavaScript `Date.now()`, 
 {"id":"mv6to12wp2e2x","text":"Call **Acme** about ==renewal==","type":"Decision","created":1791904489592,
  "stage":"record","essence":"","processedAt":null,"exec":null,"updatedAt":1791904489592}
 ```
-- `type`: `Idea | Quote | Note | Link | Decision | ""`. `stage`: `"record"` or `"processed"`.
+- `type`: `Idea | Quote | Note | Link | Decision | Review | ""`. `stage`: `"record"` or `"processed"`.
 - `exec`: `null` or `{"dest":"focus"|"cold"|"notes","at":<ms>,"taskId":"<task id, if any>"}`.
 
 ### Habits (`habits`)
 `{"habits":[{"name":"Walk","color":"#ff8a3d","days":{"2026-10-13":1}}, …],"updatedAt":<ms>}`. Habits merge as **one block**: the newest `habits.updatedAt` wins as a whole.
+
+### Meta (`meta`)
+`{"lastReviewAt":<ms>,"updatedAt":<ms>}`. This is the time of the last anytime Review. It merges as one block, so the newest `meta.updatedAt` wins. A review is also saved as a journal entry with `"type":"Review"`, `"stage":"processed"` and `"exec":{"dest":"notes","at":<ms>}`. The app treats the later of `meta.lastReviewAt` and the newest Review entry's `created` as the last review. To record a review, add that entry, then set `meta.lastReviewAt` and bump `meta.updatedAt` (`hm.py review` does both).
 
 ## How merging works
 - Tasks and journal entries are matched by `id`. **The copy with the larger `updatedAt` wins** (a tie keeps the phone's copy).
@@ -49,6 +53,6 @@ All times are **milliseconds since epoch (UTC)**, e.g. JavaScript `Date.now()`, 
 3. **Add an item:** use a new unique `id` (e.g. 12+ random lowercase letters and digits), set `created` and `updatedAt` to now, and include all fields shown above.
 4. **Delete an item:** don't just remove it. Replace it with `{"id":"<same id>","deleted":true,"updatedAt":<now>}`. If you remove it outright, the phone will upload it again.
 5. **Keep existing tombstones.** Never drop entries with `"deleted":true`.
-6. **Habits:** edit the block and bump `habits.updatedAt`.
+6. **Habits / meta:** edit the block and bump its `updatedAt`.
 7. Optionally bump the top-level `updatedAt`. It's informational only.
 8. Avoid editing at the same moment the phone edits the same item: the newest `updatedAt` wins, and the other change is lost.

@@ -1,6 +1,6 @@
 'use strict';
 // ===== Journal: Record → Process → Execute (key heymurph.journal.v1) =====
-const JKEY='heymurph.journal.v1',JTYPES=['Idea','Quote','Note','Link','Decision'];
+const JKEY='heymurph.journal.v1',JTYPES=['Idea','Quote','Note','Link','Decision','Review'];
 const JF={inbox:'Record',processed:'Process',exec:'Executed',notes:'Notes',all:'All'};
 const DEST={focus:'Focus List',cold:'Cold Storage',notes:'Notes'};
 function jload(){try{const j=JSON.parse(localStorage.getItem(JKEY));if(Array.isArray(j))return j}catch(e){}return[]}

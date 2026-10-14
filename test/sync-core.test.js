@@ -20,3 +20,7 @@ test('two devices converge',()=>{const A={items:[T('a',1),T('b',1)],journal:[],h
  A.items[0]=T('a',10,{title:'A edit'});B.items=[T('a',1),{id:'b',deleted:true,updatedAt:12},T('c',11)];
  const r1=C.mergeDoc(A,null),r2=C.mergeDoc(B,r1),r3=C.mergeDoc(A,r2);assert.ok(C.sameDoc(r2,r3));
  const by=Object.fromEntries(r3.items.map(x=>[x.id,x]));assert.equal(by.a.title,'A edit');assert.ok(by.b.deleted);assert.ok(by.c)});
+test('meta (lastReviewAt) newest updatedAt wins and affects sameDoc',()=>{const L={items:[],journal:[],habits:{habits:[],updatedAt:0},meta:{lastReviewAt:100,updatedAt:100}};
+ const R={items:[],journal:[],habits:{habits:[],updatedAt:0},meta:{lastReviewAt:200,updatedAt:200}};
+ assert.equal(C.mergeDoc(L,R).meta.lastReviewAt,200);assert.equal(C.mergeDoc(R,L).meta.lastReviewAt,200);
+ assert.equal(C.mergeDoc({items:[],journal:[]},{}).meta.lastReviewAt,0);assert.ok(!C.sameDoc(L,R))});

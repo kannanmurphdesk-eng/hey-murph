@@ -1,7 +1,7 @@
 'use strict';
 // ===== Dropbox two-way sync (OAuth2 PKCE, app folder, /heymurph-data.json) =====
 (function(){
-const SK='heymurph.sync.v1',FILE='/heymurph-data.json',KEYS=['heymurph.v1','heymurph.habits.v1','heymurph.journal.v1'];
+const SK='heymurph.sync.v1',FILE='/heymurph-data.json',KEYS=['heymurph.v1','heymurph.habits.v1','heymurph.journal.v1','heymurph.meta.v1'];
 const C=SyncCore,key=typeof DROPBOX_APP_KEY==='string'?DROPBOX_APP_KEY.trim():'',REDIR=typeof DROPBOX_REDIRECT_URI==='string'?DROPBOX_REDIRECT_URI:location.origin+location.pathname;
 let S;try{S=JSON.parse(localStorage.getItem(SK))||{}}catch(e){S={}}S.sh=S.sh||{};S.tomb=S.tomb||{items:{},journal:{}};
 const rawSet=Storage.prototype.setItem;let quiet=false,timer=null,busy=false,again=false,state='idle',errMsg='';
@@ -13,9 +13,9 @@ function stamp(){if(window.__hmReset)return;const now=Date.now();
  S.sh.habits=C.stampObj(H,S.sh.habits,now);
  quiet=true;try{localStorage.setItem('heymurph.v1',JSON.stringify(items));localStorage.setItem('heymurph.journal.v1',JSON.stringify(J));localStorage.setItem('heymurph.habits.v1',JSON.stringify(H))}finally{quiet=false}ssave()}
 Storage.prototype.setItem=function(k,v){if(window.__hmReset&&KEYS.includes(k))return;rawSet.call(this,k,v);if(!quiet&&this===localStorage&&KEYS.includes(k)){clearTimeout(stamp.t);stamp.t=setTimeout(()=>{stamp();schedule(2500)},0)}};
-function localDoc(){return{items:C.withTombs(items,S.tomb.items),journal:C.withTombs(J,S.tomb.journal),habits:H}}
-function applyDoc(d){const a=C.split(d.items),b=C.split(d.journal);items=a.live;J=b.live;if(d.habits&&Array.isArray(d.habits.habits))H=d.habits;S.tomb={items:a.tombs,journal:b.tombs};
- quiet=true;try{localStorage.setItem('heymurph.v1',JSON.stringify(items));localStorage.setItem('heymurph.journal.v1',JSON.stringify(J));localStorage.setItem('heymurph.habits.v1',JSON.stringify(H))}finally{quiet=false}
+function localDoc(){return{items:C.withTombs(items,S.tomb.items),journal:C.withTombs(J,S.tomb.journal),habits:H,meta:META}}
+function applyDoc(d){const a=C.split(d.items),b=C.split(d.journal);items=a.live;J=b.live;if(d.habits&&Array.isArray(d.habits.habits))H=d.habits;if(d.meta&&typeof d.meta==='object')META=d.meta;S.tomb={items:a.tombs,journal:b.tombs};
+ quiet=true;try{localStorage.setItem('heymurph.v1',JSON.stringify(items));localStorage.setItem('heymurph.journal.v1',JSON.stringify(J));localStorage.setItem('heymurph.habits.v1',JSON.stringify(H));localStorage.setItem('heymurph.meta.v1',JSON.stringify(META))}finally{quiet=false}
  S.sh.items=C.stampList(items,{},{},0).shadow;S.sh.journal=C.stampList(J,{},{},0).shadow;S.sh.habits=C.hashOf(H);ssave();
  try{render()}catch(e){}}
 // --- UI
