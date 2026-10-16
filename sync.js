@@ -73,7 +73,7 @@ setInterval(()=>{if(state==='synced')ui()},60000);
 window.HMSync={connect,linked:()=>!!(key&&S.rt),stamp,state:()=>state};
 stamp();ui(!key?'nocfg':S.rt?'idle':'off');
 (async()=>{try{await handleRedirect()}catch(e){ui('error',e.message)}sync();
- if(key&&!S.rt){const w=document.createElement('div');w.id='welcome';w.innerHTML=`<div class="wc-in"><img src="icons/logo.png" alt="" class="wc-logo"><h2>${localStorage.getItem('heymurph.welcomed')?'Connect Dropbox':'Welcome to Hey Murph'}</h2><p>Your focus list, habits and journal, in one place.</p>
+ if(key&&!S.rt){const w=document.createElement('div');w.id='welcome';w.innerHTML=`<div class="wc-in"><img src="icons/logo.png" alt="" class="wc-logo"><h2>${localStorage.getItem('heymurph.welcomed')?'Connect Dropbox':'Hey Aspirants!'}</h2><p>Welcome to Hey Murph. Your focus list, habits and journal, in one place.</p>
 <div class="wc-step"><b>Step 1</b> Connect Dropbox to keep your data backed up and synced across devices.</div>
 <button id="wcGo" class="wc-go">Connect Dropbox</button><div class="wc-skip" style="font-size:.85em">Required — without it, your data could be lost if the phone or browser is cleared.</div></div>`;document.body.appendChild(w);
   const done=()=>{localStorage.setItem('heymurph.welcomed','1');w.remove()};
