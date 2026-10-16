@@ -196,3 +196,7 @@ header{align-items:flex-start}.hbtns{align-items:center;margin-top:4px}
 #welcome .wc-in{max-width:420px;text-align:center}#welcome .wc-logo{width:72px;height:72px}#welcome h2{margin:14px 0 6px}#welcome p{opacity:.75;margin:0 0 18px}
 #welcome .wc-step{background:rgba(140,160,255,.08);border:1px solid rgba(140,160,255,.2);border-radius:14px;padding:14px;text-align:left;margin-bottom:18px}#welcome .wc-step b{display:block;color:#7f95ff;margin-bottom:4px}
 #welcome button{display:block;width:100%;margin-top:10px}#welcome .wc-go{background:linear-gradient(90deg,#5F7BFF,#3fd0ff);color:#fff;font-weight:700}#welcome .wc-skip{background:none;border:none;opacity:.7}
+
+#sub{display:flex;gap:6px;margin:0 0 10px}#sub button{flex:1;padding:8px 4px;font-size:.82em;border-radius:12px;background:rgba(140,160,255,.07);border:1px solid rgba(140,160,255,.18)}
+#sub button.on{background:linear-gradient(90deg,#5F7BFF,#8f6bff);color:#fff;border-color:transparent}#sub small{opacity:.75}
+select.mv{max-width:120px}
