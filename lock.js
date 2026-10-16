@@ -23,7 +23,7 @@ async function enter(){const p=getP();
   if(buf!==first){shake();first='';buf='';setTimeout(()=>{dots();msg('PINs did not match — enter a new PIN',true)},300);return}
   const salt=hex(crypto.getRandomValues(new Uint8Array(16)));putP({salt,hash:await H(salt,buf),fails:0,until:0});hide();toast('PIN set');return}
  if(!p){hide();return}if(p.until&&Date.now()<p.until){buf='';dots();return}
- if(await H(p.salt,buf)===p.hash){p.fails=0;p.until=0;putP(p);const c=cb;hide();if(c)c();return}
+ if(await H(p.salt,buf)===p.hash){p.fails=0;p.until=0;putP(p);try{sessionStorage.setItem('heymurph.unlocked','1')}catch(e){}const c=cb;hide();if(c)c();return}
  p.fails=(p.fails||0)+1;if(p.fails>=MAXF){p.fails=0;p.until=Date.now()+COOL}putP(p);shake();buf='';setTimeout(()=>{dots();if(!cool())msg(`Wrong PIN (${MAXF-((p.fails)||0)} tries left)`,true)},350)}
 el.addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b||!mode)return;const k=b.dataset.k;
  if(k==='x'){if(mode!=='unlock')hide();return}if(k==='b'){buf=buf.slice(0,-1);dots();return}
@@ -33,7 +33,7 @@ $l('#lkForgot').onclick=()=>{const t=prompt('Forgot PIN — Reset app?\n\nThis C
  if(t===null)return;if(t.trim()!=='RESET'){toast('Not reset (you must type RESET)');return}
  window.__hmReset=true;Object.keys(localStorage).filter(k=>k.startsWith('heymurph.')).forEach(k=>localStorage.removeItem(k));try{sessionStorage.clear()}catch(e){}location.reload()};
 const lock=()=>{if(getP()&&mode!=='unlock')show('unlock')};
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')hiddenAt=Date.now();else if(hiddenAt&&Date.now()-hiddenAt>BG)lock()});
+
 // menu
 const col=document.querySelector('#menu .col'),mk=(v)=>{const b=document.createElement('button');b.value=v;b.type='submit';col.insertBefore(b,col.lastElementChild);return b};
 const bSet=mk('pinset'),bRem=mk('pinrem');
@@ -42,5 +42,6 @@ document.querySelector('#menu').addEventListener('close',()=>{const r=document.q
  if(r==='pinset'){if(p)show('verify',{title:'Enter current PIN',cb:()=>setTimeout(()=>show('set',{title:'Enter new 4-digit PIN'}),150)});else show('set',{title:'Choose a 4-digit PIN'})}
  if(r==='pinrem'&&p)show('verify',{title:'Enter current PIN to remove',cb:()=>{localStorage.removeItem(PK);toast('PIN removed')}})});
 window.HMLock={lock,show};
-if(getP())show('unlock');else document.documentElement.classList.remove('locked');
+let ok=false;try{ok=sessionStorage.getItem('heymurph.unlocked')==='1'}catch(e){}
+if(getP()&&!ok)show('unlock');else document.documentElement.classList.remove('locked');
 })();
