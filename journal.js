@@ -21,7 +21,7 @@ function jlist(){let L=J.filter(e=>jf==='all'||(jf==='notes'?e.exec&&e.exec.dest
 function renderJournal(){const c=k=>J.filter(e=>k==='all'||(k==='notes'?e.exec&&e.exec.dest==='notes':k==='exec'?!!e.exec:jstage(e)===k)).length;
  const box=$('#journal');if(!box.dataset.init){box.dataset.init=1;box.innerHTML=`
  <form id="jrec" class="jcard"><textarea id="jtext" rows="4" placeholder="Record a thought… (auto-stamped)"></textarea>
- <div class="jrow"><select id="jtype"><option value="">Type</option>${JTYPES.map(t=>`<option>${t}</option>`).join('')}</select><button class="primary">Save</button></div></form>
+ <input type="hidden" id="jtype"><div class="jrow"><button class="primary">Save</button></div></form>
  <div id="jfilt"></div><div class="jrow"><input id="jsearch" type="search" placeholder="Search journal…"><button id="jmd" type="button">Export MD</button></div><div id="jlist"></div>`;
   $('#jrec').onsubmit=e=>{e.preventDefault();const t=$('#jtext').value.trim();if(!t)return;J.push(jnorm({text:t,type:$('#jtype').value}));jsave();$('#jtext').value='';$('#jtype').value='';toast('Recorded '+jtime(Date.now()));if(jf!=='inbox'&&jf!=='all')jf='inbox';renderJournal()};
   $('#jsearch').oninput=e=>{jq=e.target.value.trim();renderJournal()};
