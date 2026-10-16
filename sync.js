@@ -61,17 +61,16 @@ document.querySelector('#menuBtn').addEventListener('click',mlabel);
 document.querySelector('#menu').addEventListener('close',async()=>{if(document.querySelector('#menu').returnValue!=='dbx')return;
  if(!key)return toast('Sync not configured: add DROPBOX_APP_KEY in config.js');if(!S.rt)return connect();
  if(!confirm('Disconnect Dropbox? Local data stays on this device.'))return;try{await dbx('https://api.dropboxapi.com/2/auth/token/revoke',{method:'POST'})}catch(e){}
- S.rt=S.at='';S.exp=0;ssave();ui('off');toast('Dropbox disconnected')});
+ S.rt=S.at='';S.exp=0;ssave();location.reload()});
 addEventListener('online',()=>schedule(300));addEventListener('offline',()=>ui('offline'));
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')schedule(300)});
 setInterval(()=>{if(state==='synced')ui()},60000);
 window.HMSync={connect,stamp,state:()=>state};
 stamp();ui(!key?'nocfg':S.rt?'idle':'off');
 (async()=>{try{await handleRedirect()}catch(e){ui('error',e.message)}sync();
- if(!localStorage.getItem('heymurph.welcomed')&&!S.rt){const w=document.createElement('div');w.id='welcome';w.innerHTML=`<div class="wc-in"><img src="icons/logo.png" alt="" class="wc-logo"><h2>Welcome to Hey Murph</h2><p>Your focus list, habits and journal, in one place.</p>
+ if(key&&!S.rt){const w=document.createElement('div');w.id='welcome';w.innerHTML=`<div class="wc-in"><img src="icons/logo.png" alt="" class="wc-logo"><h2>${localStorage.getItem('heymurph.welcomed')?'Connect Dropbox':'Welcome to Hey Murph'}</h2><p>Your focus list, habits and journal, in one place.</p>
 <div class="wc-step"><b>Step 1</b> Connect Dropbox to keep your data backed up and synced across devices.</div>
-<button id="wcGo" class="wc-go">Connect Dropbox</button><button id="wcSkip" class="wc-skip">Skip for now</button></div>`;document.body.appendChild(w);
+<button id="wcGo" class="wc-go">Connect Dropbox</button><div class="wc-skip" style="font-size:.85em">Required — without it, your data could be lost if the phone or browser is cleared.</div></div>`;document.body.appendChild(w);
   const done=()=>{localStorage.setItem('heymurph.welcomed','1');w.remove()};
-  w.querySelector('#wcSkip').onclick=done;w.querySelector('#wcGo').onclick=()=>{if(!key){toast('Sync not configured');return done()}localStorage.setItem('heymurph.welcomed','1');connect()}}
- else localStorage.setItem('heymurph.welcomed','1')})();
+  w.querySelector('#wcGo').onclick=()=>connect()}})();
 })();
