@@ -68,7 +68,7 @@ function renderHabits(){const t=dAgo(0);$('#habits').innerHTML=H.habits.map((h,i
  +`<div class="hcard wkc"><div class="hhead"><span class="hname static">Weekly completion</span><span class="leg">${H.habits.map(h=>`<i style="background:${h.color}"></i>${esc(h.name)}`).join(' ')}</span></div>${weekly()}</div>`}
 $('#habits').addEventListener('click',e=>{const b=e.target.closest('[data-ht],[data-hn],[data-d]');if(!b)return;
  if(b.dataset.hn){const h=H.habits[b.dataset.hn],n=prompt('Habit name',h.name);if(n&&n.trim())h.name=n.trim().slice(0,40)}
- else{const h=H.habits[b.dataset.ht??b.dataset.h],d=b.dataset.d||dAgo(0);if(h.days[d])delete h.days[d];else h.days[d]=1}
+ else{const h=H.habits[b.dataset.ht??b.dataset.h],d=b.dataset.d||dAgo(0);h.days[d]=h.days[d]?0:1;h.ts=h.ts||{};h.ts[d]=Date.now()}
  hsave();renderHabits()});
 let editing=null;
 function openEdit(id){editing=items.find(x=>x.id===id);const f=$('#editForm');f.title.value=editing.title;f.due.value=editing.due;f.top.checked=editing.top;f.notes.value=editing.notes||'';
