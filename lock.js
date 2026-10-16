@@ -42,7 +42,7 @@ $l('#lkBio').onclick=bioUnlock;
 const lock=()=>{if(getP()&&mode!=='unlock')show('unlock')};
 
 // menu
-const col=document.querySelector('#menu .col'),mk=(v)=>{const b=document.createElement('button');b.value=v;b.type='submit';col.insertBefore(b,col.lastElementChild);return b};
+const col=document.querySelector('#stSec'),mk=(v)=>{const b=document.createElement('button');b.value=v;b.type='submit';col.appendChild(b);return b};
 const bSet=mk('pinset'),bRem=mk('pinrem'),bBio=mk('bio');
 document.querySelector('#menuBtn').addEventListener('click',()=>{const p=getP();bSet.textContent=p?'Change PIN':'Set PIN';bRem.hidden=!p;bRem.textContent='Remove PIN';bBio.hidden=!p||!bioOK();bBio.textContent=getB()?'Turn off fingerprint':'Use fingerprint'});
 document.querySelector('#menu').addEventListener('close',()=>{const r=document.querySelector('#menu').returnValue,p=getP();

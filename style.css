@@ -181,3 +181,11 @@ li .mv.ins{color:#FFB83F}li .mv.ins.has{padding:4px 8px}.insm{font-size:13px}
 #insSheet{width:min(520px,94vw)}#insBody{display:flex;flex-direction:column;gap:8px}.insT{font-size:17px;font-weight:700}
 #insBody textarea{width:100%;box-sizing:border-box;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:15px;color:var(--fg)}
 #capIns[hidden]{display:none}
+
+/* settings */
+.settings .st-h{font-size:1.25em;font-weight:700;margin:0 0 10px}
+.settings .st-sec{font-size:.75em;text-transform:uppercase;letter-spacing:.08em;opacity:.65;margin:12px 4px 4px}
+.settings .st-g{display:flex;flex-direction:column;gap:6px;background:rgba(140,160,255,.07);border:1px solid rgba(140,160,255,.15);border-radius:14px;padding:8px}
+.settings .st-g button{text-align:left}
+.settings .st-close{margin-top:14px}
+#menuBtn svg{display:block}

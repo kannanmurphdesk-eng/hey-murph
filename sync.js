@@ -55,7 +55,7 @@ async function sync(){if(window.__hmReset)return;if(!key){ui('nocfg');return}if(
 function schedule(ms){clearTimeout(timer);timer=setTimeout(sync,ms)}
 btn.onclick=()=>{if(!key)return toast('Sync not configured: add DROPBOX_APP_KEY in config.js');if(!S.rt)return connect();sync()};
 // menu entry
-const col=document.querySelector('#menu .col'),mb=document.createElement('button');mb.value='dbx';mb.type='submit';col.insertBefore(mb,col.lastElementChild);
+const col=document.querySelector('#stSync'),mb=document.createElement('button');mb.value='dbx';mb.type='submit';col.appendChild(mb);
 const mlabel=()=>mb.textContent=!key?'Dropbox sync: not configured':S.rt?'Disconnect Dropbox':'Connect Dropbox';
 document.querySelector('#menuBtn').addEventListener('click',mlabel);
 document.querySelector('#menu').addEventListener('close',async()=>{if(document.querySelector('#menu').returnValue!=='dbx')return;
