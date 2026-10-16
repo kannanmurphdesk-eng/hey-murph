@@ -26,14 +26,14 @@ function rvDraw(){const e=rvCur(),N=RV.q.length,b=$('#rvBody');let h=`<div class
  if(e){const pos=RV.i+1;h+=`<div class="rvprog"><span>Record ${pos} of ${N}</span><div class="rvbar"><i style="width:${Math.round(RV.i/N*100)}%"></i></div></div>
  <div class="jm"><span class="jt">${jday(e.created)} ${jtime(e.created)}</span>${e.type?`<span class="jty">${e.type}</span>`:''}<span class="lvl" id="rvLvl"></span><span class="mut">${daysSince(e.created)}d old</span></div>
  <div class="jrow" style="margin-top:8px"><button data-r="b"><b>B</b> Bold</button><button data-r="h"><mark>H</mark> Highlight</button><button data-r="edit">Open editor</button></div>
- <textarea id="rvText" rows="5">${esc(e.text)}</textarea><div id="rvPrev" class="jb jprev" hidden></div><textarea id="rvEss" rows="3" placeholder="Process comments…">${esc(e.essence||'')}</textarea>
+ <textarea id="rvText" rows="5">${esc(e.text)}</textarea><div id="rvPrev" class="jb jprev" hidden></div><textarea id="rvEss" rows="3" placeholder="Review comments…">${esc(e.essence||'')}</textarea>
  ${e.stage==='processed'?`<div class="jlab">Execute</div>${execBtns(e.id)}`:''}
- <div class="jrow"><button data-r="proc" class="s-processed">Processed, decide later</button><button data-r="skip">Skip</button><button data-r="del" class="danger">Delete</button></div>`}
+ <div class="jrow"><button data-r="proc" class="s-processed">Reviewed, decide later</button><button data-r="skip">Skip</button><button data-r="del" class="danger">Delete</button></div>`}
  else{const P=J.filter(rvPend).sort((a,b)=>a.created-b.created);
   h+=`<div class="rvprog"><span>${N?`All ${N} Record entr${N===1?'y':'ies'} reviewed`:'Nothing left in Record'}</span><div class="rvbar"><i style="width:100%"></i></div></div>
-  <div class="jlab">Processed, not executed yet (${P.length})</div>${P.length?P.map(x=>`<div class="rvp"><div class="rvpt">${x.essence?`<b>${esc(x.essence)}</b> · `:''}${jfmt(x.text.split('\n')[0].slice(0,120))}</div>${execBtns(x.id)}</div>`).join(''):'<p class="mut">None. Everything processed has a destination.</p>'}
+  <div class="jlab">Reviewed, not executed yet (${P.length})</div>${P.length?P.map(x=>`<div class="rvp"><div class="rvpt">${x.essence?`<b>${esc(x.essence)}</b> · `:''}${jfmt(x.text.split('\n')[0].slice(0,120))}</div>${execBtns(x.id)}</div>`).join(''):'<p class="mut">None. Everything reviewed has a destination.</p>'}
   <label class="rvins">Insight (optional)<textarea id="rvIns" rows="3" placeholder="Anything this review taught you…"></textarea></label>`}
- const s=RV.stats;h+=`<div class="rvfoot"><span class="mut">${s.processed} processed · ${s.executed} executed · ${s.deleted} deleted</span><button data-r="finish" class="primary">Finish review</button></div>`;
+ const s=RV.stats;h+=`<div class="rvfoot"><span class="mut">${s.processed} reviewed · ${s.executed} executed · ${s.deleted} deleted</span><button data-r="finish" class="primary">Finish review</button></div>`;
  b.innerHTML=h;if(e){rvPrev();$('#rvText').oninput=$('#rvEss').oninput=rvPrev}}
 function rvPrev(){const t={text:$('#rvText').value,essence:$('#rvEss').value};$('#rvPrev').innerHTML=jfmt(t.text);const l=jlevel(t),L=$('#rvLvl');L.textContent=l;L.className='lvl l-'+l}
 function rvWrap(m){const t=$('#rvText'),a=t.selectionStart,z=t.selectionEnd;if(a===z){toast('Select some text first');return}t.setRangeText(m+t.value.slice(a,z)+m,a,z,'select');t.focus();rvPrev()}

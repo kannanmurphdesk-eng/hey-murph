@@ -1,7 +1,7 @@
 'use strict';
 // ===== Journal: Record → Process → Execute (key heymurph.journal.v1) =====
 const JKEY='heymurph.journal.v1',JTYPES=['Idea','Quote','Note','Link','Decision','Review','Insight'];
-const JF={inbox:'Record',processed:'Process',exec:'Executed',notes:'Notes',all:'All'};
+const JF={inbox:'Record',processed:'Review',exec:'Execute',notes:'Notes',all:'All'};
 const DEST={focus:'Focus List',cold:'Cold Storage',notes:'Notes'};
 function jload(){try{const j=JSON.parse(localStorage.getItem(JKEY));if(Array.isArray(j))return j}catch(e){}return[]}
 let J=jload(),jf='inbox',jq='',jcur=null;
@@ -34,11 +34,11 @@ function renderJournal(){const c=k=>J.filter(e=>k==='all'||(k==='notes'?e.exec&&
   const st=jstage(e);html+=`<div class="jent s-${st}" data-jid="${e.id}"><div class="jm"><span class="jt">${jtime(e.created)}</span>${e.type?`<span class="jty">${e.type}</span>`:''}<span class="lvl l-${jlevel(e)}">${jlevel(e)}</span></div>
   ${e.essence?`<div class="jess">${esc(e.essence)}</div>`:''}<div class="jb">${jfmt(e.text)}</div>${e.xnote?`<div class="jess">Exec: ${esc(e.xnote)}</div>`:''}${e.exec?`<div class="jx d-${e.exec.dest}">→ ${DEST[e.exec.dest]} · ${jday(e.exec.at)} ${jtime(e.exec.at)}</div>`:''}</div>`}
  $('#jlist').innerHTML=html||'<div class="empty">Nothing here yet.</div>'}
-function jmd(L,label){return`# Hey Murph Journal — ${label}\n\nExported ${jday(Date.now())} ${jtime(Date.now())} (${L.length} entries)\n\n`+L.map(e=>`## ${jday(e.created)} ${jtime(e.created)} — ${e.type||'Entry'}\n\n- Stage: ${{inbox:'Record',processed:'Processed',exec:'Executed'}[jstage(e)]} (${jlevel(e)})\n`+(e.essence?`- Essence: ${e.essence}\n`:'')+`- Execute: ${e.exec?DEST[e.exec.dest]+' ('+jday(e.exec.at)+' '+jtime(e.exec.at)+')':'—'}\n\n${e.text}\n`).join('\n')}
+function jmd(L,label){return`# Hey Murph Journal — ${label}\n\nExported ${jday(Date.now())} ${jtime(Date.now())} (${L.length} entries)\n\n`+L.map(e=>`## ${jday(e.created)} ${jtime(e.created)} — ${e.type||'Entry'}\n\n- Stage: ${{inbox:'Record',processed:'Reviewed',exec:'Executed'}[jstage(e)]} (${jlevel(e)})\n`+(e.essence?`- Essence: ${e.essence}\n`:'')+`- Execute: ${e.exec?DEST[e.exec.dest]+' ('+jday(e.exec.at)+' '+jtime(e.exec.at)+')':'—'}\n\n${e.text}\n`).join('\n')}
 // editor
 function jopen(id){jcur=J.find(e=>e.id===id);const f=$('#jform');f.text.value=jcur.text;f.type.value=jcur.type;f.essence.value=jcur.essence;f.xnote.value=jcur.xnote||'';jprev();$('#jedit').showModal()}
 function jprev(){const f=$('#jform'),tmp={text:f.text.value,essence:f.essence.value};$('#jprev').innerHTML=jfmt(tmp.text)||'<i>empty</i>';$('#jlvl').textContent=jlevel(tmp);$('#jlvl').className='lvl l-'+jlevel(tmp);
- $('#jst').textContent=jcur.exec?'Executed → '+DEST[jcur.exec.dest]+' · '+jday(jcur.exec.at)+' '+jtime(jcur.exec.at):jcur.stage==='processed'?'Processed':'Record (unprocessed)';$('#jexbox').hidden=true}
+ $('#jst').textContent=jcur.exec?'Executed → '+DEST[jcur.exec.dest]+' · '+jday(jcur.exec.at)+' '+jtime(jcur.exec.at):jcur.stage==='processed'?'Reviewed':'Record (not reviewed)';$('#jexbox').hidden=true}
 function jwrap(m){const t=$('#jform').text,a=t.selectionStart,b=t.selectionEnd;if(a===b){toast('Select some text first');return}
  t.setRangeText(m+t.value.slice(a,b)+m,a,b,'select');t.focus();jprev()}
 function jcommit(){const f=$('#jform');jcur.text=f.text.value.trim()||jcur.text;jcur.type=f.type.value;jcur.essence=f.essence.value.trim();jcur.xnote=f.xnote.value.trim()}
@@ -48,7 +48,7 @@ function jexec(dest){jcommit();if(jcur.exec&&!confirm('Already sent to '+DEST[jc
  if(jcur.stage!=='processed'){jcur.stage='processed';jcur.processedAt=Date.now()}jsave();$('#jedit').close('x');toast('Sent to '+DEST[dest]);render()}
 $('#jform').addEventListener('input',jprev);
 $('#jform').addEventListener('click',e=>{const a=e.target.closest('[data-j]');if(!a)return;e.preventDefault();const k=a.dataset.j;
- if(k==='b')jwrap('**');else if(k==='h')jwrap('==');else if(k==='proc'){jcommit();jcur.stage='processed';jcur.processedAt=Date.now();jsave();jprev();toast('Processed');render()}
+ if(k==='b')jwrap('**');else if(k==='h')jwrap('==');else if(k==='proc'){jcommit();jcur.stage='processed';jcur.processedAt=Date.now();jsave();jprev();toast('Reviewed');render()}
  else if(k==='unproc'){jcommit();jcur.stage='record';jsave();jprev()}
  else if(DEST[k])jexec(k);else if(k==='del'){if(confirm('Delete this journal entry?')){J=J.filter(x=>x!==jcur);jsave();$('#jedit').close('x');render()}}
  else if(k==='save'){jcommit();jsave();$('#jedit').close('x');render()}else if(k==='cancel')$('#jedit').close('x')});

@@ -26,12 +26,12 @@
 <button value="importJson">Import JSON backup</button><button value="importMd">Import Markdown (paste)</button><button value="cancel">Close</button></div></form></dialog>
 <dialog id="paste"><form method="dialog"><textarea id="pasteText" rows="12" placeholder="Paste Hey Murph Markdown"></textarea>
 <div class="btns"><button value="cancel">Cancel</button><button value="ok" class="primary">Import</button></div></form></dialog>
-<dialog id="jedit"><form id="jform"><div class="jrow"><b class="jh">Process</b><span id="jlvl" class="lvl"></span><span id="jst" class="jsts"></span></div>
+<dialog id="jedit"><form id="jform"><div class="jrow"><b class="jh">Review</b><span id="jlvl" class="lvl"></span><span id="jst" class="jsts"></span></div>
 <div class="jrow"><button data-j="b"><b>B</b> Bold</button><button data-j="h"><mark>H</mark> Highlight</button></div>
 <textarea name="text" rows="6"></textarea><div id="jprev" class="jb jprev" hidden></div>
-<label>Process comments<textarea name="essence" rows="3" placeholder="Your comments on this entry…"></textarea></label>
+<label>Review comments<textarea name="essence" rows="3" placeholder="Your comments on this entry…"></textarea></label>
 <input type="hidden" name="type">
-<div class="jrow"><button data-j="proc" class="s-processed">Mark processed</button><button data-j="unproc">Back to Record</button></div>
+<div class="jrow"><button data-j="proc" class="s-processed">Mark reviewed</button><button data-j="unproc">Back to Record</button></div>
 <div id="jexbox" hidden><div class="jlab">Execute</div><div class="jrow"><button data-j="focus" class="d-focus">→ Focus List</button><button data-j="cold" class="d-cold">→ Cold Storage</button><button data-j="notes" class="d-notes">→ Notes</button></div><label>Execution comments<textarea name="xnote" rows="3" placeholder="Comments on execution…"></textarea></label></div>
 <div class="btns"><button data-j="del" class="danger">Delete</button><button data-j="cancel">Cancel</button><button data-j="save" class="primary">Save</button></div></form></dialog>
 <dialog id="insSheet"><div id="insBody"></div></dialog>
