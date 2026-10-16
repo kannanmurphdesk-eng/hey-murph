@@ -189,3 +189,10 @@ li .mv.ins{color:#FFB83F}li .mv.ins.has{padding:4px 8px}.insm{font-size:13px}
 .settings .st-g button{text-align:left}
 .settings .st-close{margin-top:14px}
 #menuBtn svg{display:block}
+
+header{align-items:flex-start}.hbtns{align-items:center;margin-top:4px}
+.hbtns .icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center}.sync{font-size:20px}
+#welcome{position:fixed;inset:0;z-index:999;background:linear-gradient(180deg,#0b1126,#05070f);display:flex;align-items:center;justify-content:center;padding:24px}
+#welcome .wc-in{max-width:420px;text-align:center}#welcome .wc-logo{width:72px;height:72px}#welcome h2{margin:14px 0 6px}#welcome p{opacity:.75;margin:0 0 18px}
+#welcome .wc-step{background:rgba(140,160,255,.08);border:1px solid rgba(140,160,255,.2);border-radius:14px;padding:14px;text-align:left;margin-bottom:18px}#welcome .wc-step b{display:block;color:#7f95ff;margin-bottom:4px}
+#welcome button{display:block;width:100%;margin-top:10px}#welcome .wc-go{background:linear-gradient(90deg,#5F7BFF,#3fd0ff);color:#fff;font-weight:700}#welcome .wc-skip{background:none;border:none;opacity:.7}

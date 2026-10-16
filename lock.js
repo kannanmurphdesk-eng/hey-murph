@@ -44,9 +44,10 @@ const lock=()=>{if(getP()&&mode!=='unlock')show('unlock')};
 // menu
 const col=document.querySelector('#stSec'),mk=(v)=>{const b=document.createElement('button');b.value=v;b.type='submit';col.appendChild(b);return b};
 const bSet=mk('pinset'),bRem=mk('pinrem'),bBio=mk('bio');
-document.querySelector('#menuBtn').addEventListener('click',()=>{const p=getP();bSet.textContent=p?'Change PIN':'Set PIN';bRem.hidden=!p;bRem.textContent='Remove PIN';bBio.hidden=!p||!bioOK();bBio.textContent=getB()?'Turn off fingerprint':'Use fingerprint'});
+document.querySelector('#menuBtn').addEventListener('click',()=>{const p=getP();bSet.textContent=p?'Change PIN':'Set PIN';bRem.hidden=!p;bRem.textContent='Remove PIN';bBio.hidden=!bioOK();bBio.textContent=getB()?'Turn off fingerprint':'Use fingerprint'});
 document.querySelector('#menu').addEventListener('close',()=>{const r=document.querySelector('#menu').returnValue,p=getP();
  if(r==='pinset'){if(p)show('verify',{title:'Enter current PIN',cb:()=>setTimeout(()=>show('set',{title:'Enter new 4-digit PIN'}),150)});else show('set',{title:'Choose a 4-digit PIN'})}
+ if(r==='bio'&&!p){toast('Set a PIN first — it is the backup for fingerprint');setTimeout(()=>show('set',{title:'Choose a 4-digit PIN'}),150)}
  if(r==='bio'&&p){if(getB()){localStorage.removeItem(BK);toast('Fingerprint unlock off')}else show('verify',{title:'Enter PIN to enable fingerprint',cb:()=>setTimeout(bioEnroll,150)})}
  if(r==='pinrem'&&p)show('verify',{title:'Enter current PIN to remove',cb:()=>{localStorage.removeItem(PK);localStorage.removeItem(BK);toast('PIN removed')}})});
 window.HMLock={lock,show};
