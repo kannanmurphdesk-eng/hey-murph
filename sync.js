@@ -35,6 +35,11 @@ async function handleRedirect(){const q=new URLSearchParams(location.search),cod
  if(q.get('error')){toast('Dropbox: '+(q.get('error_description')||q.get('error')));return}
  const v=sessionStorage.getItem('hm.pkce');if(!v||q.get('state')!==sessionStorage.getItem('hm.state')){toast('Dropbox sign-in expired, try again');return}
  const j=await tokenReq({grant_type:'authorization_code',code,code_verifier:v,redirect_uri:REDIR});sessionStorage.removeItem('hm.pkce');
+ if(sessionStorage.getItem('hm.pinreset')){sessionStorage.removeItem('hm.pinreset');
+  if(S.acct&&S.acct!==j.account_id){toast('That is a different Dropbox account — PIN not reset');return}
+  S.rt=j.refresh_token;S.at=j.access_token;S.exp=Date.now()+(j.expires_in-60)*1e3;S.acct=j.account_id;ssave();
+  localStorage.removeItem('heymurph.pin.v1');localStorage.removeItem('heymurph.bio.v1');sessionStorage.setItem('heymurph.unlocked','1');
+  setTimeout(()=>{window.HMLock&&HMLock.show('set',{title:'Verified ✓ Choose a new 4-digit PIN'})},200);return}
  S.rt=j.refresh_token;S.at=j.access_token;S.exp=Date.now()+(j.expires_in-60)*1e3;S.acct=j.account_id;ssave();toast('Dropbox connected')}
 async function access(){if(S.at&&Date.now()<S.exp)return S.at;const j=await tokenReq({grant_type:'refresh_token',refresh_token:S.rt});S.at=j.access_token;S.exp=Date.now()+(j.expires_in-60)*1e3;ssave();return S.at}
 async function dbx(url,opt,retry=true){const t=await access();const r=await fetch(url,Object.assign({},opt,{headers:Object.assign({Authorization:'Bearer '+t},opt.headers)}));
@@ -65,7 +70,7 @@ document.querySelector('#menu').addEventListener('close',async()=>{if(document.q
 addEventListener('online',()=>schedule(300));addEventListener('offline',()=>ui('offline'));
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')schedule(300)});
 setInterval(()=>{if(state==='synced')ui()},60000);
-window.HMSync={connect,stamp,state:()=>state};
+window.HMSync={connect,linked:()=>!!(key&&S.rt),stamp,state:()=>state};
 stamp();ui(!key?'nocfg':S.rt?'idle':'off');
 (async()=>{try{await handleRedirect()}catch(e){ui('error',e.message)}sync();
  if(key&&!S.rt){const w=document.createElement('div');w.id='welcome';w.innerHTML=`<div class="wc-in"><img src="icons/logo.png" alt="" class="wc-logo"><h2>${localStorage.getItem('heymurph.welcomed')?'Connect Dropbox':'Welcome to Hey Murph'}</h2><p>Your focus list, habits and journal, in one place.</p>

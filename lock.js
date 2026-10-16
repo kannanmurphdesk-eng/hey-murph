@@ -29,7 +29,8 @@ el.addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b||!mod
  if(k==='x'){if(mode!=='unlock')hide();return}if(k==='b'){buf=buf.slice(0,-1);dots();return}
  const p=getP();if(mode!=='set'&&p&&p.until&&Date.now()<p.until)return;if(buf.length<4){buf+=k;dots();if(buf.length===4)setTimeout(enter,120)}});
 document.addEventListener('keydown',e=>{if(!mode)return;if(/^\d$/.test(e.key))el.querySelector(`[data-k="${e.key}"]`).click();else if(e.key==='Backspace')el.querySelector('[data-k=b]').click()});
-$l('#lkForgot').onclick=()=>{const t=prompt('Forgot PIN — Reset app?\n\nThis CLEARS ALL Hey Murph data on this device (tasks, habits, journal, PIN, Dropbox connection).\nIf you use Dropbox sync, reconnect Dropbox afterwards to re-sync your data from the Dropbox copy.\n\nType RESET to confirm:');
+$l('#lkForgot').onclick=()=>{if(window.HMSync&&HMSync.linked()){if(confirm('Forgot PIN?\n\nSign in to your Dropbox account to verify it is you, then set a new PIN. Your data stays safe.')){sessionStorage.setItem('hm.pinreset','1');HMSync.connect()}return}
+ const t=prompt('Forgot PIN — Reset app?\n\nThis CLEARS ALL Hey Murph data on this device (tasks, habits, journal, PIN, Dropbox connection).\nIf you use Dropbox sync, reconnect Dropbox afterwards to re-sync your data from the Dropbox copy.\n\nType RESET to confirm:');
  if(t===null)return;if(t.trim()!=='RESET'){toast('Not reset (you must type RESET)');return}
  window.__hmReset=true;Object.keys(localStorage).filter(k=>k.startsWith('heymurph.')).forEach(k=>localStorage.removeItem(k));try{sessionStorage.clear()}catch(e){}location.reload()};
 const BK='heymurph.bio.v1',getB=()=>localStorage.getItem(BK),b64=b=>btoa(String.fromCharCode(...new Uint8Array(b))),ub64=t=>Uint8Array.from(atob(t),c=>c.charCodeAt(0));
