@@ -14,7 +14,7 @@ const jlevel=e=>e.essence&&e.essence.trim()?'Summarised':/==[^=]+==/.test(e.text
 const jfmt=s=>esc(s).replace(/\*\*([^*]+?)\*\*/g,'<b>$1</b>').replace(/==([^=]+?)==/g,'<mark>$1</mark>').replace(/\n/g,'<br>');
 const jtitle=e=>(e.essence&&e.essence.trim())||e.text.split('\n').find(l=>l.trim())?.replace(/\*\*|==/g,'').trim().slice(0,120)||'(empty)';
 function jnorm(x){return{id:x.id||uid(),text:String(x.text||''),type:JTYPES.includes(x.type)?x.type:'',customer:String(x.customer||''),created:+x.created||Date.now(),
- stage:x.stage==='processed'?'processed':'record',...(x.tid?{tid:String(x.tid)}:{}),essence:String(x.essence||''),processedAt:x.processedAt||null,exec:x.exec&&DEST[x.exec.dest]?x.exec:null}}
+ stage:x.stage==='processed'?'processed':'record',...(x.tid?{tid:String(x.tid)}:{}),essence:String(x.essence||''),xnote:String(x.xnote||''),processedAt:x.processedAt||null,exec:x.exec&&DEST[x.exec.dest]?x.exec:null}}
 function jlist(){let L=J.filter(e=>jf==='all'||(jf==='notes'?e.exec&&e.exec.dest==='notes':jf==='exec'?!!e.exec:jstage(e)===jf));
  if(jq){const q=jq.toLowerCase();L=L.filter(e=>(e.text+' '+e.essence+' '+e.type).toLowerCase().includes(q))}
  return L.sort((a,b)=>b.created-a.created)}
@@ -32,23 +32,23 @@ function renderJournal(){const c=k=>J.filter(e=>k==='all'||(k==='notes'?e.exec&&
  const L=jlist();let html='',day='';
  for(const e of L){const d=jday(e.created);if(d!==day){day=d;html+=`<h3 class="jday">${new Date(e.created).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'})}</h3>`}
   const st=jstage(e);html+=`<div class="jent s-${st}" data-jid="${e.id}"><div class="jm"><span class="jt">${jtime(e.created)}</span>${e.type?`<span class="jty">${e.type}</span>`:''}<span class="lvl l-${jlevel(e)}">${jlevel(e)}</span></div>
-  ${e.essence?`<div class="jess">${esc(e.essence)}</div>`:''}<div class="jb">${jfmt(e.text)}</div>${e.exec?`<div class="jx d-${e.exec.dest}">→ ${DEST[e.exec.dest]} · ${jday(e.exec.at)} ${jtime(e.exec.at)}</div>`:''}</div>`}
+  ${e.essence?`<div class="jess">${esc(e.essence)}</div>`:''}<div class="jb">${jfmt(e.text)}</div>${e.xnote?`<div class="jess">Exec: ${esc(e.xnote)}</div>`:''}${e.exec?`<div class="jx d-${e.exec.dest}">→ ${DEST[e.exec.dest]} · ${jday(e.exec.at)} ${jtime(e.exec.at)}</div>`:''}</div>`}
  $('#jlist').innerHTML=html||'<div class="empty">Nothing here yet.</div>'}
 function jmd(L,label){return`# Hey Murph Journal — ${label}\n\nExported ${jday(Date.now())} ${jtime(Date.now())} (${L.length} entries)\n\n`+L.map(e=>`## ${jday(e.created)} ${jtime(e.created)} — ${e.type||'Entry'}\n\n- Stage: ${{inbox:'Record',processed:'Processed',exec:'Executed'}[jstage(e)]} (${jlevel(e)})\n`+(e.essence?`- Essence: ${e.essence}\n`:'')+`- Execute: ${e.exec?DEST[e.exec.dest]+' ('+jday(e.exec.at)+' '+jtime(e.exec.at)+')':'—'}\n\n${e.text}\n`).join('\n')}
 // editor
-function jopen(id){jcur=J.find(e=>e.id===id);const f=$('#jform');f.text.value=jcur.text;f.type.value=jcur.type;f.essence.value=jcur.essence;jprev();$('#jedit').showModal()}
+function jopen(id){jcur=J.find(e=>e.id===id);const f=$('#jform');f.text.value=jcur.text;f.type.value=jcur.type;f.essence.value=jcur.essence;f.xnote.value=jcur.xnote||'';jprev();$('#jedit').showModal()}
 function jprev(){const f=$('#jform'),tmp={text:f.text.value,essence:f.essence.value};$('#jprev').innerHTML=jfmt(tmp.text)||'<i>empty</i>';$('#jlvl').textContent=jlevel(tmp);$('#jlvl').className='lvl l-'+jlevel(tmp);
- $('#jst').textContent=jcur.exec?'Executed → '+DEST[jcur.exec.dest]+' · '+jday(jcur.exec.at)+' '+jtime(jcur.exec.at):jcur.stage==='processed'?'Processed':'Record (unprocessed)'}
+ $('#jst').textContent=jcur.exec?'Executed → '+DEST[jcur.exec.dest]+' · '+jday(jcur.exec.at)+' '+jtime(jcur.exec.at):jcur.stage==='processed'?'Processed':'Record (unprocessed)';$('#jexbox').hidden=!(jcur.stage==='processed'||jcur.exec)}
 function jwrap(m){const t=$('#jform').text,a=t.selectionStart,b=t.selectionEnd;if(a===b){toast('Select some text first');return}
  t.setRangeText(m+t.value.slice(a,b)+m,a,b,'select');t.focus();jprev()}
-function jcommit(){const f=$('#jform');jcur.text=f.text.value.trim()||jcur.text;jcur.type=f.type.value;jcur.essence=f.essence.value.trim()}
+function jcommit(){const f=$('#jform');jcur.text=f.text.value.trim()||jcur.text;jcur.type=f.type.value;jcur.essence=f.essence.value.trim();jcur.xnote=f.xnote.value.trim()}
 function jexec(dest){jcommit();if(jcur.exec&&!confirm('Already sent to '+DEST[jcur.exec.dest]+'. Send again?'))return;
  if(dest!=='notes'){if(dest==='focus'&&!canFocus())return;const t=mk(jtitle(jcur),dest,{});t.notes=jcur.text.replace(/\*\*|==/g,'');t.jid=jcur.id;items.push(t);save();jcur.exec={dest,at:Date.now(),taskId:t.id}}
  else jcur.exec={dest,at:Date.now()};
  if(jcur.stage!=='processed'){jcur.stage='processed';jcur.processedAt=Date.now()}jsave();$('#jedit').close('x');toast('Sent to '+DEST[dest]);render()}
 $('#jform').addEventListener('input',jprev);
 $('#jform').addEventListener('click',e=>{const a=e.target.closest('[data-j]');if(!a)return;e.preventDefault();const k=a.dataset.j;
- if(k==='b')jwrap('**');else if(k==='h')jwrap('==');else if(k==='proc'){jcommit();jcur.stage='processed';jcur.processedAt=Date.now();jsave();$('#jedit').close('x');toast('Processed');render()}
+ if(k==='b')jwrap('**');else if(k==='h')jwrap('==');else if(k==='proc'){jcommit();jcur.stage='processed';jcur.processedAt=Date.now();jsave();jprev();toast('Processed. Execute is open');render()}
  else if(k==='unproc'){jcommit();jcur.stage='record';jsave();jprev()}
  else if(DEST[k])jexec(k);else if(k==='del'){if(confirm('Delete this journal entry?')){J=J.filter(x=>x!==jcur);jsave();$('#jedit').close('x');render()}}
  else if(k==='save'){jcommit();jsave();$('#jedit').close('x');render()}else if(k==='cancel')$('#jedit').close('x')});

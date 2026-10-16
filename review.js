@@ -27,7 +27,7 @@ function rvDraw(){const e=rvCur(),N=RV.q.length,b=$('#rvBody');let h=`<div class
  <div class="jm"><span class="jt">${jday(e.created)} ${jtime(e.created)}</span>${e.type?`<span class="jty">${e.type}</span>`:''}<span class="lvl" id="rvLvl"></span><span class="mut">${daysSince(e.created)}d old</span></div>
  <div class="jrow" style="margin-top:8px"><button data-r="b"><b>B</b> Bold</button><button data-r="h"><mark>H</mark> Highlight</button><button data-r="edit">Open editor</button></div>
  <textarea id="rvText" rows="5">${esc(e.text)}</textarea><div id="rvPrev" class="jb jprev" hidden></div><textarea id="rvEss" rows="3" placeholder="Process comments…">${esc(e.essence||'')}</textarea>
- <div class="jlab">Execute</div>${execBtns(e.id)}
+ ${e.stage==='processed'?`<div class="jlab">Execute</div>${execBtns(e.id)}`:''}
  <div class="jrow"><button data-r="proc" class="s-processed">Processed, decide later</button><button data-r="skip">Skip</button><button data-r="del" class="danger">Delete</button></div>`}
  else{const P=J.filter(rvPend).sort((a,b)=>a.created-b.created);
   h+=`<div class="rvprog"><span>${N?`All ${N} Record entr${N===1?'y':'ies'} reviewed`:'Nothing left in Record'}</span><div class="rvbar"><i style="width:100%"></i></div></div>
