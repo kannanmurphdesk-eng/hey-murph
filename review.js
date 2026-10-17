@@ -18,10 +18,10 @@ let RV=null;
 function rvStart(){RV={q:J.filter(rvUnproc).sort((a,b)=>a.created-b.created).map(e=>e.id),i:0,stats:{processed:0,executed:0,deleted:0,skipped:0},done:false};rvDraw();$('#rvSheet').showModal()}
 const rvCur=()=>RV&&RV.i<RV.q.length?J.find(e=>e.id===RV.q[RV.i]):null;
 function rvNext(){RV.i++;while(RV.i<RV.q.length&&!J.find(e=>e.id===RV.q[RV.i]))RV.i++;rvDraw()}
-function rvExec(e,dest){if(dest!=='notes'){if(dest==='focus'&&!canFocus())return false;const t=mk(jtitle(e),dest,{});t.notes=e.text.replace(/\*\*|==/g,'');t.jid=e.id;items.push(t);save();e.exec={dest,at:Date.now(),taskId:t.id}}
+function rvExec(e,dest){if(dest!=='notes'){if(!canIn(dest))return false;const t=mk(jtitle(e),dest,{});t.notes=e.text.replace(/\*\*|==/g,'');t.jid=e.id;items.push(t);save();e.exec={dest,at:Date.now(),taskId:t.id}}
  else e.exec={dest,at:Date.now()};if(e.stage!=='processed'){e.stage='processed';e.processedAt=Date.now()}jsave();RV.stats.executed++;toast('Sent to '+DEST[dest]);return true}
 function rvCommit(e){const t=$('#rvText'),es=$('#rvEss');if(!e||!t)return;e.text=t.value.trim()||e.text;e.essence=es.value.trim();jsave()}
-const execBtns=id=>`<div class="jrow rvx"><button data-r="x-focus" data-id="${id}" class="d-focus">→ Focus List</button><button data-r="x-cold" data-id="${id}" class="d-cold">→ Cold Storage</button><button data-r="x-notes" data-id="${id}" class="d-notes">→ Notes</button></div>`;
+const execBtns=id=>`<div class="jrow rvx">${Object.keys(DEST).map(d=>`<button data-r="x-${d}" data-id="${id}" class="d-${d}">→ ${DEST[d]}</button>`).join('')}</div>`;
 function rvDraw(){const e=rvCur(),N=RV.q.length,b=$('#rvBody');let h=`<div class="rvtop"><div class="rvh">Journal review</div><button data-r="close" class="x" aria-label="Close">✕</button></div>`;
  if(e){const pos=RV.i+1;h+=`<div class="rvprog"><span>Record ${pos} of ${N}</span><div class="rvbar"><i style="width:${Math.round(RV.i/N*100)}%"></i></div></div>
  <div class="jm"><span class="jt">${jday(e.created)} ${jtime(e.created)}</span>${e.type?`<span class="jty">${e.type}</span>`:''}<span class="lvl" id="rvLvl"></span><span class="mut">${daysSince(e.created)}d old</span></div>

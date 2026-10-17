@@ -2,7 +2,7 @@
 // ===== Journal: Record → Process → Execute (key heymurph.journal.v1) =====
 const JKEY='heymurph.journal.v1',JTYPES=['Idea','Quote','Note','Link','Decision','Review','Insight'];
 const JF={inbox:'Record',processed:'Review',exec:'Execute',notes:'Notes',all:'All'};
-const DEST={focus:'Focus List',cold:'Cold Storage',notes:'Notes'};
+const DEST={focus:'Focus List',next:'Next Action',radar:'Under Radar',cold:'Cold Storage',po:'PO funnel',del:'Delivery cases',pay:'Payment pending',notes:'Notes'};
 function jload(){try{const j=JSON.parse(localStorage.getItem(JKEY));if(Array.isArray(j))return j}catch(e){}return[]}
 let J=jload(),jf='inbox',jq='',jcur=null;
 const jsave=()=>localStorage.setItem(JKEY,JSON.stringify(J));
@@ -43,7 +43,7 @@ function jwrap(m){const t=$('#jform').text,a=t.selectionStart,b=t.selectionEnd;i
  t.setRangeText(m+t.value.slice(a,b)+m,a,b,'select');t.focus();jprev()}
 function jcommit(){const f=$('#jform');jcur.text=f.text.value.trim()||jcur.text;jcur.type=f.type.value;jcur.essence=f.essence.value.trim();jcur.xnote=f.xnote.value.trim()}
 function jexec(dest){jcommit();if(jcur.exec&&!confirm('Already sent to '+DEST[jcur.exec.dest]+'. Send again?'))return;
- if(dest!=='notes'){if(dest==='focus'&&!canFocus())return;const t=mk(jtitle(jcur),dest,{});t.notes=jcur.text.replace(/\*\*|==/g,'');t.jid=jcur.id;items.push(t);save();jcur.exec={dest,at:Date.now(),taskId:t.id}}
+ if(dest!=='notes'){if(!canIn(dest))return;const t=mk(jtitle(jcur),dest,{});t.notes=jcur.text.replace(/\*\*|==/g,'');t.jid=jcur.id;items.push(t);save();jcur.exec={dest,at:Date.now(),taskId:t.id}}
  else jcur.exec={dest,at:Date.now()};
  if(jcur.stage!=='processed'){jcur.stage='processed';jcur.processedAt=Date.now()}jsave();$('#jedit').close('x');toast('Sent to '+DEST[dest]);render()}
 $('#jform').addEventListener('input',jprev);

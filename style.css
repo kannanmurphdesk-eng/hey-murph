@@ -215,3 +215,5 @@ select.mv{max-width:120px}
 #tabs button{font-size:.72em}
 .flist li{display:block;margin:0;cursor:pointer}#tabs button[data-v=flow]{--t:#2fd3e0}
 .fpog{display:grid;grid-template-columns:1fr 1fr;gap:8px}.fpog label{display:flex;flex-direction:column;gap:4px;font-size:.78em;opacity:.85}.fpo{color:#9fb0ff;font-weight:600}.fd .fcm{color:var(--c);font-weight:700;opacity:1}
+.rvx,#jexbox .jrow{flex-wrap:wrap}
+#editForm .fsl{margin-top:4px}
