@@ -45,15 +45,22 @@ async function handleRedirect(){const q=new URLSearchParams(location.search),cod
 async function access(){if(S.at&&Date.now()<S.exp)return S.at;const j=await tokenReq({grant_type:'refresh_token',refresh_token:S.rt});S.at=j.access_token;S.exp=Date.now()+(j.expires_in-60)*1e3;ssave();return S.at}
 async function dbx(url,opt,retry=true){const t=await access();const r=await fetch(url,Object.assign({},opt,{headers:Object.assign({Authorization:'Bearer '+t},opt.headers)}));
  if(r.status===401&&retry){S.at='';return dbx(url,opt,false)}return r}
-async function download(){const r=await dbx('https://content.dropboxapi.com/2/files/download',{method:'POST',headers:{'Dropbox-API-Arg':JSON.stringify({path:FILE})}});
+async function download(path){const r=await dbx('https://content.dropboxapi.com/2/files/download',{method:'POST',headers:{'Dropbox-API-Arg':JSON.stringify({path:path||FILE})}});
  if(r.status===409){const e=await r.text();if(/not_found/.test(e))return null;throw new Error('download '+e.slice(0,120))}if(!r.ok)throw new Error('download '+r.status);
  const txt=await r.text();try{return JSON.parse(txt)}catch(e){throw new Error('heymurph-data.json is not valid JSON — not overwriting')}}
 async function upload(doc){const r=await dbx('https://content.dropboxapi.com/2/files/upload',{method:'POST',headers:{'Content-Type':'application/octet-stream','Dropbox-API-Arg':JSON.stringify({path:FILE,mode:'overwrite',mute:true})},body:JSON.stringify(doc,null,1)});
  if(!r.ok)throw new Error('upload '+r.status+' '+(await r.text()).slice(0,120))}
+// --- inbox: one-time data drops (e.g. day log entries added by the assistant)
+async function inbox(){const P='/heymurph-inbox.json';let d;try{d=await download(P)}catch(e){return}if(!d||!d.daylog)return;
+ const now=Date.now(),L=d.daylog,h=H.habits[L.habit||0];if(!h)return;if(L.rename&&/^Habit \d$/.test(h.name))h.name=L.rename;h.dl=true;h.log=h.log||{};h.ts=h.ts||{};
+ for(const[dt,e]of Object.entries(L.entries||{})){h.log[dt]=Object.assign({},e,{ts:now});if(e.tick){h.days[dt]=1;h.ts[dt]=now}}
+ H.updatedAt=now;localStorage.setItem('heymurph.habits.v1',JSON.stringify(H));
+ try{await dbx('https://api.dropboxapi.com/2/files/delete_v2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:P})})}catch(e){}
+ if(typeof renderHabits==='function'&&view==='habits')renderHabits();toast('Day log updated from Murph')}
 // --- sync
 async function sync(){if(window.__hmReset)return;if(!key){ui('nocfg');return}if(!S.rt){ui('off');return}if(!navigator.onLine){ui('offline');return}
  if(busy){again=true;return}busy=true;ui('syncing');
- try{stamp();const remote=await download();const merged=C.mergeDoc(localDoc(),remote);
+ try{stamp();await inbox();const remote=await download();const merged=C.mergeDoc(localDoc(),remote);
   const same=C.sameDoc(remote,merged);
   applyDoc(merged);if(!same)await upload(merged);S.last=Date.now();ssave();ui('synced')}
  catch(e){if(e.auth){S.rt='';S.at='';ssave();ui('off');toast('Dropbox sign-in expired — reconnect')}else if(!navigator.onLine||e instanceof TypeError)ui('offline');else ui('error',e.message);console.warn('sync',e)}

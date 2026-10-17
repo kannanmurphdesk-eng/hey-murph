@@ -1,5 +1,5 @@
 // ===== Day log for a habit (out duty): type, place, plan vs actual, monthly counts =====
-const DLT=[['local','Local','🏙'],['out','Outstation','🚆'],['office','Office','🏢'],['hol','Holiday','🎉'],['leave','Leave','🌴']];
+const DLT=[['local','Local','🏙'],['out','Outstation','🚆'],['office','Office','🏢'],['hol','Holiday','🎉'],['leave','Leave','🌴'],['wo','WO','🛋']];
 const dlName=k=>(DLT.find(t=>t[0]===k)||['','—',''])[1],dlIco=k=>(DLT.find(t=>t[0]===k)||['','',''])[2];
 let dlMon=dAgo(0).slice(0,7);
 const fmd=d=>new Date(d+'T00:00').toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
@@ -26,7 +26,7 @@ function dlClose(){const g=document.getElementById('dlog'),r=g.returnValue,f=g.q
  h.log=h.log||{};h.ts=h.ts||{};const now=Date.now(),t=dAgo(0);
  if(r==='del'){if(!h.log[d])return;h.log[d]={del:1,ts:now}}
  else{const ty=(f.querySelector('[name=type]:checked')||{}).value||'';h.log[d]={type:ty,place:f.place.value.trim(),plan:f.plan.value.trim(),act:f.act.value.trim(),ts:now};
-  if(d<=t&&!h.days[d]){h.days[d]=1;h.ts[d]=now}dlMon=d.slice(0,7)}
+  if(d<=t&&!h.days[d]&&['local','out','office'].includes(ty)){h.days[d]=1;h.ts[d]=now}dlMon=d.slice(0,7)}
  H.updatedAt=now;hsave();renderHabits()}
 $('#habits').addEventListener('click',e=>{const m=e.target.closest('[data-dlm]'),a=e.target.closest('[data-dla]'),l=e.target.closest('[data-dle]'),tg=e.target.closest('[data-dlt]');
  if(m){const[y,mo]=dlMon.split('-').map(Number),n=new Date(y,mo-1+Number(m.dataset.dlm),1);dlMon=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');renderHabits()}

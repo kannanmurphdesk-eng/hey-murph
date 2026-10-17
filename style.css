@@ -223,7 +223,7 @@ select.mv{max-width:120px}
 .dlh{display:flex;align-items:center;gap:8px}.dlh b{flex:1;text-align:center;font-size:14px}
 .dlh button{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--fg);border-radius:10px;padding:5px 10px;min-height:0}
 .dlh .dladd{color:var(--c,#7aa2ff);font-weight:600}
-.dlc{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0 4px}
+.dlc{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 4px}
 .dlc div{background:rgba(255,255,255,.05);border-radius:10px;padding:7px 2px;text-align:center}
 .dlc b{display:block;font-size:18px;color:var(--c,#fff)}.dlc span{font-size:10px;opacity:.75}
 .dlpl{font-size:12px;opacity:.7;margin:4px 0}
