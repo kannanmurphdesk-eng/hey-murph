@@ -52,6 +52,7 @@ async function upload(doc){const r=await dbx('https://content.dropboxapi.com/2/f
  if(!r.ok)throw new Error('upload '+r.status+' '+(await r.text()).slice(0,120))}
 // --- inbox: one-time data drops (e.g. day log entries added by the assistant)
 async function inbox(){const P='/heymurph-inbox.json';let d;try{d=await download(P)}catch(e){return}if(!d)return;const now=Date.now();
+ if(d.untick&&H.habits[d.untick.habit||0]){const h=H.habits[d.untick.habit||0];h.ts=h.ts||{};(d.untick.dates||[]).forEach(dt=>{h.days[dt]=0;h.ts[dt]=now})}
  if(Array.isArray(d.names))d.names.forEach((n,k)=>{if(n&&H.habits[k])H.habits[k].name=n});
  if(d.daylog){const L=d.daylog,h=H.habits[L.habit||0];if(h){if(L.rename&&/^Habit \d$/.test(h.name))h.name=L.rename;h.dl=true;h.log=h.log||{};h.ts=h.ts||{};
  for(const[dt,e]of Object.entries(L.entries||{})){h.log[dt]=Object.assign({},e,{ts:now});if(e.tick){h.days[dt]=1;h.ts[dt]=now}}}}

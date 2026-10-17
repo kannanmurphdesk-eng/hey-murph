@@ -25,7 +25,7 @@ function dlClose(){const g=document.getElementById('dlog'),r=g.returnValue,f=g.q
  h.log=h.log||{};h.ts=h.ts||{};const now=Date.now(),t=dAgo(0);
  if(r==='del'){if(!h.log[d])return;h.log[d]={del:1,ts:now}}
  else{const ty=(f.querySelector('[name=type]:checked')||{}).value||'';h.log[d]={type:ty,place:f.place.value.trim(),plan:f.plan.value.trim(),act:'',ts:now};
-  if(d<=t&&!h.days[d]&&['local','out','office'].includes(ty)){h.days[d]=1;h.ts[d]=now}dlMon=d.slice(0,7)}
+  if(d<=t){const on=['local','out'].includes(ty)?1:0;if((h.days[d]?1:0)!==on){h.days[d]=on;h.ts[d]=now}}dlMon=d.slice(0,7)}
  H.updatedAt=now;hsave();view==='travel'?renderTravel():renderHabits()}
 $('#habits').addEventListener('click',e=>{const m=e.target.closest('[data-dlm]'),a=e.target.closest('[data-dla]'),l=e.target.closest('[data-dle]'),tg=e.target.closest('[data-dlt]');
  if(m){const[y,mo]=dlMon.split('-').map(Number),n=new Date(y,mo-1+Number(m.dataset.dlm),1);dlMon=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');renderHabits()}
