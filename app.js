@@ -54,12 +54,13 @@ const HKEY='heymurph.habits.v1',HCOL=['#ff8a3d','#2fd3e0'];
 function hload(){try{const h=JSON.parse(localStorage.getItem(HKEY));if(h&&Array.isArray(h.habits))return h}catch(e){}return{habits:[{name:'Habit 1',color:HCOL[0],days:{}},{name:'Habit 2',color:HCOL[1],days:{}}]}}
 let H=hload();const hsave=()=>localStorage.setItem(HKEY,JSON.stringify(H));
 const dAgo=n=>{const d=new Date();d.setDate(d.getDate()-n);return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
-function hstats(h){let cur=0;let n=h.days[dAgo(0)]?0:1;while(h.days[dAgo(n)]){cur++;n++}
+const hoff=(h,d)=>!!(h.dl&&h.log&&h.log[d]&&!h.log[d].del&&['hol','leave','wo','office'].includes(h.log[d].type)&&!h.days[d]);
+function hstats(h){let cur=0;let n=h.days[dAgo(0)]||hoff(h,dAgo(0))?0:1;for(let g=0;g<400;g++){const d=dAgo(n);if(h.days[d])cur++;else if(!hoff(h,d))break;n++}
  const ks=Object.keys(h.days).filter(k=>h.days[k]).sort();let best=0,run=0,prev=null;
- for(const k of ks){const p=prev&&new Date(new Date(k)-864e5).toISOString().slice(0,10)===prev;run=p?run+1:1;best=Math.max(best,run);prev=k}
- let c=0;for(let i=0;i<30;i++)if(h.days[dAgo(i)])c++;return{cur,best,pct:Math.round(c/30*100)}}
+ for(const k of ks){let p=false;if(prev){let x=new Date(prev+'T00:00');for(let g=0;g<60;g++){x.setDate(x.getDate()+1);const xd=new Date(x-x.getTimezoneOffset()*6e4).toISOString().slice(0,10);if(xd===k){p=true;break}if(!hoff(h,xd))break}}run=p?run+1:1;best=Math.max(best,run);prev=k}
+ let c=0,tot=0;for(let i=0;i<30;i++){const d=dAgo(i);if(hoff(h,d))continue;tot++;if(h.days[d])c++}return{cur,best,pct:tot?Math.round(c/tot*100):0}}
 function strip(h,hi){let o='';for(let i=29;i>=0;i--){const x=(29-i)*11,on=h.days[dAgo(i)],ed=i<7;
- o+=`<rect x="${x}" y="0" width="9" height="28" rx="2.5" fill="${on?h.color:'rgba(255,255,255,.07)'}" ${ed?`data-h="${hi}" data-d="${dAgo(i)}" class="ed${i===0?' td':''}"`:''}><title>${dAgo(i)}</title></rect>`}
+ o+=`<rect x="${x}" y="0" width="9" height="28" rx="2.5" fill="${on?h.color:hoff(h,dAgo(i))?'rgba(255,255,255,.32)':'rgba(255,255,255,.07)'}" ${ed?`data-h="${hi}" data-d="${dAgo(i)}" class="ed${i===0?' td':''}"`:''}><title>${dAgo(i)}</title></rect>`}
  return `<svg viewBox="0 0 329 28" class="strip" role="img" aria-label="30 day history">${o}</svg><div class="sl"><span>30 days ago</span><span>tap last 7 to edit</span><span>today</span></div>`}
 function weekly(){const W=8,w=300,hh=90;let bars='',lab='';
  for(let k=W-1;k>=0;k--){const x=(W-1-k)*(w/W);H.habits.forEach((h,j)=>{let c=0;for(let i=0;i<7;i++)if(h.days[dAgo(k*7+i)])c++;const bh=c/7*(hh-14);
