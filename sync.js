@@ -51,12 +51,13 @@ async function download(path){const r=await dbx('https://content.dropboxapi.com/
 async function upload(doc){const r=await dbx('https://content.dropboxapi.com/2/files/upload',{method:'POST',headers:{'Content-Type':'application/octet-stream','Dropbox-API-Arg':JSON.stringify({path:FILE,mode:'overwrite',mute:true})},body:JSON.stringify(doc,null,1)});
  if(!r.ok)throw new Error('upload '+r.status+' '+(await r.text()).slice(0,120))}
 // --- inbox: one-time data drops (e.g. day log entries added by the assistant)
-async function inbox(){const P='/heymurph-inbox.json';let d;try{d=await download(P)}catch(e){return}if(!d||!d.daylog)return;
- const now=Date.now(),L=d.daylog,h=H.habits[L.habit||0];if(!h)return;if(L.rename&&/^Habit \d$/.test(h.name))h.name=L.rename;h.dl=true;h.log=h.log||{};h.ts=h.ts||{};
- for(const[dt,e]of Object.entries(L.entries||{})){h.log[dt]=Object.assign({},e,{ts:now});if(e.tick){h.days[dt]=1;h.ts[dt]=now}}
+async function inbox(){const P='/heymurph-inbox.json';let d;try{d=await download(P)}catch(e){return}if(!d)return;const now=Date.now();
+ if(Array.isArray(d.names))d.names.forEach((n,k)=>{if(n&&H.habits[k])H.habits[k].name=n});
+ if(d.daylog){const L=d.daylog,h=H.habits[L.habit||0];if(h){if(L.rename&&/^Habit \d$/.test(h.name))h.name=L.rename;h.dl=true;h.log=h.log||{};h.ts=h.ts||{};
+ for(const[dt,e]of Object.entries(L.entries||{})){h.log[dt]=Object.assign({},e,{ts:now});if(e.tick){h.days[dt]=1;h.ts[dt]=now}}}}
  H.updatedAt=now;localStorage.setItem('heymurph.habits.v1',JSON.stringify(H));
  try{await dbx('https://api.dropboxapi.com/2/files/delete_v2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:P})})}catch(e){}
- if(typeof renderHabits==='function'&&view==='habits')renderHabits();toast('Day log updated from Murph')}
+ if(typeof renderHabits==='function'&&view==='habits')renderHabits();toast('Updated from Murph')}
 // --- sync
 async function sync(){if(window.__hmReset)return;if(!key){ui('nocfg');return}if(!S.rt){ui('off');return}if(!navigator.onLine){ui('offline');return}
  if(busy){again=true;return}busy=true;ui('syncing');
