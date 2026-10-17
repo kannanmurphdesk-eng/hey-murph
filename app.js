@@ -54,7 +54,7 @@ const HKEY='heymurph.habits.v1',HCOL=['#ff8a3d','#2fd3e0'];
 function hload(){try{const h=JSON.parse(localStorage.getItem(HKEY));if(h&&Array.isArray(h.habits))return h}catch(e){}return{habits:[{name:'Habit 1',color:HCOL[0],days:{}},{name:'Habit 2',color:HCOL[1],days:{}}]}}
 let H=hload();const hsave=()=>localStorage.setItem(HKEY,JSON.stringify(H));
 const dAgo=n=>{const d=new Date();d.setDate(d.getDate()-n);return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
-const hoff=(h,d)=>!!(h.dl&&h.log&&h.log[d]&&!h.log[d].del&&['hol','leave','wo','office'].includes(h.log[d].type)&&!h.days[d]);
+const hoff=(h,d)=>!!(h.dl&&h.log&&h.log[d]&&!h.log[d].del&&['hol','leave','office'].includes(h.log[d].type)&&!h.days[d]);
 function hstats(h){let cur=0;let n=h.days[dAgo(0)]||hoff(h,dAgo(0))?0:1;for(let g=0;g<400;g++){const d=dAgo(n);if(h.days[d])cur++;else if(!hoff(h,d))break;n++}
  const ks=Object.keys(h.days).filter(k=>h.days[k]).sort();let best=0,run=0,prev=null;
  for(const k of ks){let p=false;if(prev){let x=new Date(prev+'T00:00');for(let g=0;g<60;g++){x.setDate(x.getDate()+1);const xd=new Date(x-x.getTimezoneOffset()*6e4).toISOString().slice(0,10);if(xd===k){p=true;break}if(!hoff(h,xd))break}}run=p?run+1:1;best=Math.max(best,run);prev=k}

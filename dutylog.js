@@ -25,7 +25,7 @@ function dlClose(){const g=document.getElementById('dlog'),r=g.returnValue,f=g.q
  h.log=h.log||{};h.ts=h.ts||{};const now=Date.now(),t=dAgo(0);
  if(r==='del'){if(!h.log[d])return;h.log[d]={del:1,ts:now}}
  else{const ty=(f.querySelector('[name=type]:checked')||{}).value||'';h.log[d]={type:ty,place:f.place.value.trim(),plan:f.plan.value.trim(),act:'',ts:now};
-  if(d<=t){const on=['local','out'].includes(ty)?1:0;if((h.days[d]?1:0)!==on){h.days[d]=on;h.ts[d]=now}}dlMon=d.slice(0,7)}
+  if(d<=t){const on=['local','out','wo'].includes(ty)?1:0;if((h.days[d]?1:0)!==on){h.days[d]=on;h.ts[d]=now}}dlMon=d.slice(0,7)}
  H.updatedAt=now;hsave();view==='travel'?renderTravel():renderHabits()}
 $('#habits').addEventListener('click',e=>{const m=e.target.closest('[data-dlm]'),a=e.target.closest('[data-dla]'),l=e.target.closest('[data-dle]'),tg=e.target.closest('[data-dlt]');
  if(m){const[y,mo]=dlMon.split('-').map(Number),n=new Date(y,mo-1+Number(m.dataset.dlm),1);dlMon=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');renderHabits()}
@@ -35,7 +35,7 @@ $('#habits').addEventListener('click',e=>{const m=e.target.closest('[data-dlm]')
 // ===== Travel data view (built from the out duty day log) =====
 const dlHi=()=>{const i=H.habits.findIndex(h=>h.dl);return i<0?null:i};
 function dlCounts(h,mon){const L=h.log||{},t=dAgo(0),c=Object.fromEntries(DLT.map(x=>[x[0],0]));let od=0;
- Object.keys(L).filter(d=>d.startsWith(mon)&&!L[d].del&&d<=t).forEach(d=>{if(L[d].type)c[L[d].type]++});Object.keys(h.days).forEach(d=>{if(d.startsWith(mon)&&h.days[d])od++});return{c,od}}
+ Object.keys(L).filter(d=>d.startsWith(mon)&&!L[d].del&&d<=t).forEach(d=>{if(L[d].type)c[L[d].type]++});od=c.local+c.out;return{c,od}}
 function renderTravel(){const el=$('#travel'),i=dlHi();if(i===null){el.innerHTML=`<div class="hcard"><p>Turn on the day log on your out duty habit (Habits tab) to start your travel data.</p></div>`;return}
  const h=H.habits[i],L=h.log||{},mons=[...new Set(Object.keys(L).filter(d=>!L[d].del).map(d=>d.slice(0,7)))].sort().reverse(),pl=new Set();
  Object.keys(L).filter(d=>d.startsWith(dlMon)&&!L[d].del&&d<=dAgo(0)).forEach(d=>(L[d].place||'').split(',').map(s=>s.trim()).filter(s=>s&&s!=='Office').forEach(s=>pl.add(s)));
