@@ -22,7 +22,8 @@ function mergeHabits(l,r){if(!r||!Array.isArray(r.habits))return l;if(!l||!Array
   const base=newer===r?b:a,days={},ts={},at=a.ts||{},bt=b.ts||{};
   for(const d of new Set([...Object.keys(a.days||{}),...Object.keys(b.days||{})])){const ta=at[d]||0,tb=bt[d]||0,va=a.days&&a.days[d],vb=b.days&&b.days[d];
    const v=ta>tb?va:tb>ta?vb:(va||vb);if(v)days[d]=1;else days[d]=0;if(ta||tb)ts[d]=Math.max(ta,tb)}
-  hs.push(Object.assign({},base,{days,ts}))}
+  const la=a.log||{},lb=b.log||{},log={};for(const d of new Set([...Object.keys(la),...Object.keys(lb)])){const x=la[d],y=lb[d];log[d]=!x?y:!y?x:((y.ts||0)>(x.ts||0)?y:x)}
+  hs.push(Object.assign({},base,{days,ts},Object.keys(log).length?{log}:{}))}
  return{habits:hs,updatedAt:Math.max(l.updatedAt||0,r.updatedAt||0)}}
 function mergeObj(l,r){if(!r)return l;if(!l)return r;return(r.updatedAt||0)>(l.updatedAt||0)?r:l}
 const withTombs=(arr,tombs)=>arr.concat(Object.keys(tombs).filter(id=>!arr.some(x=>x.id===id)).map(id=>({id,deleted:true,updatedAt:tombs[id]})));

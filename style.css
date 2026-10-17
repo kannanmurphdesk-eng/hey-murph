@@ -217,3 +217,24 @@ select.mv{max-width:120px}
 .fpog{display:grid;grid-template-columns:1fr 1fr;gap:8px}.fpog label{display:flex;flex-direction:column;gap:4px;font-size:.78em;opacity:.85}.fpo{color:#9fb0ff;font-weight:600}.fd .fcm{color:var(--c);font-weight:700;opacity:1}
 .rvx,#jexbox .jrow{flex-wrap:wrap}
 #editForm .fsl{margin-top:4px}
+/* day log */
+.dltg{width:100%;margin-top:12px;background:rgba(255,255,255,.04);border:1px dashed rgba(140,160,255,.3);color:var(--fg);border-radius:12px;padding:9px;font-size:13px}
+.dlp{margin-top:10px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px}
+.dlh{display:flex;align-items:center;gap:8px}.dlh b{flex:1;text-align:center;font-size:14px}
+.dlh button{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--fg);border-radius:10px;padding:5px 10px;min-height:0}
+.dlh .dladd{color:var(--c,#7aa2ff);font-weight:600}
+.dlc{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0 4px}
+.dlc div{background:rgba(255,255,255,.05);border-radius:10px;padding:7px 2px;text-align:center}
+.dlc b{display:block;font-size:18px;color:var(--c,#fff)}.dlc span{font-size:10px;opacity:.75}
+.dlpl{font-size:12px;opacity:.7;margin:4px 0}
+.dll{list-style:none;margin:8px 0 0;padding:0;display:block}
+.dll li{display:block;background:rgba(255,255,255,.04);border-radius:12px;padding:9px 10px;margin:6px 0;cursor:pointer;border-left:3px solid var(--c,#7aa2ff)}
+.dll li.fut{border-left-style:dashed;opacity:.85}.dll li.tdy{background:rgba(255,255,255,.08)}
+.dll li.dlnone{cursor:default;opacity:.6;border:0;text-align:center;font-size:13px}
+.dld{font-weight:600;font-size:13px;display:flex;justify-content:space-between;gap:8px}.dld span{font-weight:400;opacity:.85;text-align:right}
+.dlpa{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;font-size:12.5px;line-height:1.35}
+.dlpa i{display:block;font-style:normal;font-size:10px;text-transform:uppercase;letter-spacing:.06em;opacity:.55}.dlpa em{opacity:.6}
+#dlForm label{display:block;margin:8px 0;font-size:13px}#dlForm input:not([type=radio]),#dlForm textarea{width:100%;box-sizing:border-box;margin-top:4px}
+.dlty{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.dlty label{margin:0!important}
+.dlty input{position:absolute;opacity:0}.dlty span{display:inline-block;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px}
+.dlty input:checked+span{background:linear-gradient(90deg,#5F7BFF,#3ED1C0);border-color:transparent;color:#fff}
