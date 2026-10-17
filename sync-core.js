@@ -28,10 +28,10 @@ function mergeObj(l,r){if(!r)return l;if(!l)return r;return(r.updatedAt||0)>(l.u
 const withTombs=(arr,tombs)=>arr.concat(Object.keys(tombs).filter(id=>!arr.some(x=>x.id===id)).map(id=>({id,deleted:true,updatedAt:tombs[id]})));
 const split=list=>({live:list.filter(x=>!x.deleted),tombs:Object.fromEntries(list.filter(x=>x.deleted).map(x=>[x.id,x.updatedAt||0]))});
 // Full doc merge. Doc = {items, habits, journal, updatedAt}
-function mergeDoc(L,R){R=R||{};const items=mergeList(L.items,R.items),journal=mergeList(L.journal,R.journal),habits=mergeHabits(L.habits,R.habits),meta=mergeObj(L.meta,R.meta);
- const ts=[...items,...journal].map(x=>x.updatedAt||0).concat((habits&&habits.updatedAt)||0,(meta&&meta.updatedAt)||0,R.updatedAt||0,L.updatedAt||0);
- return{app:'hey-murph',version:2,updatedAt:Math.max(...ts),items,habits,journal,meta:meta||{lastReviewAt:0,updatedAt:0}}}
+function mergeDoc(L,R){R=R||{};const items=mergeList(L.items,R.items),journal=mergeList(L.journal,R.journal),flow=mergeList(L.flow,R.flow),habits=mergeHabits(L.habits,R.habits),meta=mergeObj(L.meta,R.meta);
+ const ts=[...items,...journal,...flow].map(x=>x.updatedAt||0).concat((habits&&habits.updatedAt)||0,(meta&&meta.updatedAt)||0,R.updatedAt||0,L.updatedAt||0);
+ return{app:'hey-murph',version:2,updatedAt:Math.max(...ts),items,habits,journal,flow,meta:meta||{lastReviewAt:0,updatedAt:0}}}
 function sameDoc(a,b){if(!a||!b)return false;const sig=l=>JSON.stringify((l||[]).map(x=>[x.id,x.updatedAt||0,!!x.deleted]).sort());
- return sig(a.items)===sig(b.items)&&sig(a.journal)===sig(b.journal)&&JSON.stringify(a.habits||{})===JSON.stringify(b.habits||{})&&((a.meta||{}).updatedAt||0)===((b.meta||{}).updatedAt||0)}
+ return sig(a.items)===sig(b.items)&&sig(a.journal)===sig(b.journal)&&sig(a.flow)===sig(b.flow)&&JSON.stringify(a.habits||{})===JSON.stringify(b.habits||{})&&((a.meta||{}).updatedAt||0)===((b.meta||{}).updatedAt||0)}
 const api={mergeHabits,sameDoc,hashOf,stampList,stampObj,mergeList,mergeObj,mergeDoc,withTombs,split};
 if(typeof module!=='undefined')module.exports=api;else root.SyncCore=api})(this);

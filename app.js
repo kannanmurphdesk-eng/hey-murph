@@ -20,7 +20,7 @@ function move(id,to){const i=items.find(x=>x.id===id);if(!to||to===i.list||!canI
 function toggleDone(id){const i=items.find(x=>x.id===id);if(i.done&&!canIn(i.list))return;i.done=!i.done;i.doneAt=i.done?Date.now():null;if(i.done)i.top=false;save();render()}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function render(){
- const hv=view==='habits'||view==='journal';$('#habits').hidden=view!=='habits';$('#journal').hidden=view!=='journal';['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
+ const hv=view==='habits'||view==='journal'||view==='flow';$('#habits').hidden=view!=='habits';$('#journal').hidden=view!=='journal';$('#flow').hidden=view!=='flow';if(view==='flow'&&typeof renderFlow==='function')renderFlow();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
  const fv=CAPPED.includes(view);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===view||(fv&&b.dataset.v==='focus')));
  let sb=$('#sub');if(!sb){sb=document.createElement('div');sb.id='sub';$('#filters').before(sb);sb.onclick=e=>{const b=e.target.closest('[data-s]');if(b){view=b.dataset.s;render()}}}
  sb.hidden=!fv;sb.innerHTML=CAPPED.map(l=>`<button data-s="${l}" class="${view===l?'on':''}">${LN[l]} <small>${openIn(l).length}/${CAP}</small></button>`).join('');
@@ -93,11 +93,11 @@ async function share(name,text,type){const file=new File([text],name,{type});
 $('#menuBtn').onclick=()=>$('#menu').showModal();
 $('#menu').addEventListener('close',()=>{const r=$('#menu').returnValue,d=today();
  if(r==='md')share(`hey-murph-${d}.md`,toMd(),'text/markdown');
- if(r==='json')share(`hey-murph-backup-${d}.json`,JSON.stringify({app:'hey-murph',version:1,exported:new Date().toISOString(),items,habits:H,journal:typeof J!=='undefined'?J:[],meta:typeof META!=='undefined'?META:undefined},null,1),'application/json');
+ if(r==='json')share(`hey-murph-backup-${d}.json`,JSON.stringify({app:'hey-murph',version:1,exported:new Date().toISOString(),items,habits:H,journal:typeof J!=='undefined'?J:[],flow:typeof F!=='undefined'?F:[],meta:typeof META!=='undefined'?META:undefined},null,1),'application/json');
  if(r==='importJson')$('#fileIn').click();if(r==='importMd'){$('#pasteText').value='';$('#paste').showModal()}});
 $('#paste').addEventListener('close',()=>{if($('#paste').returnValue==='ok'){const n=parseMd($('#pasteText').value);n.length?merge(n):toast('No items found in Markdown.')}});
 $('#fileIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const d=JSON.parse(await f.text());const arr=Array.isArray(d)?d:d.items;if(!Array.isArray(arr))throw 0;
- if(!confirm(`Replace all current data with ${arr.length} items from backup?`))return;items=arr.map(x=>Object.assign(mk(x.title||'',LN[x.list]?x.list:'focus',x),{id:x.id||uid(),created:x.created||Date.now(),doneAt:x.doneAt||null},x.notes?{notes:String(x.notes)}:{},x.jid?{jid:x.jid}:{}));if(d&&Array.isArray(d.journal)&&typeof jImport==='function')jImport(d.journal);if(d&&d.habits&&Array.isArray(d.habits.habits)){H=d.habits;hsave()}if(d&&d.meta&&typeof META!=='undefined'){META=d.meta;msave()}save();render();toast('Backup restored')}catch(_){toast('Not a valid Hey Murph backup.')}};
+ if(!confirm(`Replace all current data with ${arr.length} items from backup?`))return;items=arr.map(x=>Object.assign(mk(x.title||'',LN[x.list]?x.list:'focus',x),{id:x.id||uid(),created:x.created||Date.now(),doneAt:x.doneAt||null},x.notes?{notes:String(x.notes)}:{},x.jid?{jid:x.jid}:{}));if(d&&Array.isArray(d.journal)&&typeof jImport==='function')jImport(d.journal);if(d&&d.habits&&Array.isArray(d.habits.habits)){H=d.habits;hsave()}if(d&&d.meta&&typeof META!=='undefined'){META=d.meta;msave()}if(d&&Array.isArray(d.flow)&&typeof F!=='undefined'){F=d.flow;fsave()}save();render();toast('Backup restored')}catch(_){toast('Not a valid Hey Murph backup.')}};
 const QUOTES=[
 "Calm isn't the absence of chaos — it's the presence of a system.",
 "A system with clarity on both the problem and the desired outcome has 80% solved its purpose.",
