@@ -8,7 +8,7 @@ function dlPanel(i){const h=H.habits[i],L=h.log||{},t=dAgo(0),ks=Object.keys(L).
  const plans=ks.filter(d=>d>t).length,ml=new Date(dlMon+'-01T00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'});
  return `<div class="dlp"><div class="dlh"><button data-dlm="-1" aria-label="Previous month">‹</button><b>${ml}</b><button data-dlm="1" aria-label="Next month">›</button><button class="dladd" data-dla="${i}">＋ Add day</button></div>
  <div class="dlc">${DLT.map(x=>`<div><b>${cnt[x[0]]}</b><span>${x[2]} ${x[1]}</span></div>`).join('')}</div>${plans?`<div class="dlpl">${plans} planned day${plans>1?'s':''} ahead</div>`:''}
- <ul class="dll">${ks.length?ks.map(d=>{const e=L[d];return `<li data-dle="${i}" data-d2="${d}" class="${d>t?'fut':''}${d===t?' tdy':''}"><div class="dld">${fmd(d)}<span>${dlIco(e.type)} ${dlName(e.type)}${e.place?' · '+esc(e.place):''}</span></div>
+ <ul class="dll">${ks.length?ks.map(d=>{const e=L[d];return `<li data-dle="${i}" data-d2="${d}" class="${d>t?'fut':''}${d===t?' tdy':''}"><div class="dld">${fmd(d)}<span>${dlIco(e.type)} ${e.place?esc(e.place):dlName(e.type)}</span></div>
   <div class="dlrm">${(e.plan||e.act)?esc(e.plan||e.act):(d>t?'<em>upcoming</em>':'')}</div></li>`}).join(''):'<li class="dlnone">No days logged this month.</li>'}</ul></div>`}
 let dlCur=null;
 function dlOpen(i,d){const h=H.habits[i],e=(h.log||{})[d]||{};dlCur={i};let g=document.getElementById('dlog');
