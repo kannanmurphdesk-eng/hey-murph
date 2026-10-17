@@ -27,9 +27,30 @@ function dlClose(){const g=document.getElementById('dlog'),r=g.returnValue,f=g.q
  if(r==='del'){if(!h.log[d])return;h.log[d]={del:1,ts:now}}
  else{const ty=(f.querySelector('[name=type]:checked')||{}).value||'';h.log[d]={type:ty,place:f.place.value.trim(),plan:f.plan.value.trim(),act:f.act.value.trim(),ts:now};
   if(d<=t&&!h.days[d]&&['local','out','office'].includes(ty)){h.days[d]=1;h.ts[d]=now}dlMon=d.slice(0,7)}
- H.updatedAt=now;hsave();renderHabits()}
+ H.updatedAt=now;hsave();view==='travel'?renderTravel():renderHabits()}
 $('#habits').addEventListener('click',e=>{const m=e.target.closest('[data-dlm]'),a=e.target.closest('[data-dla]'),l=e.target.closest('[data-dle]'),tg=e.target.closest('[data-dlt]');
  if(m){const[y,mo]=dlMon.split('-').map(Number),n=new Date(y,mo-1+Number(m.dataset.dlm),1);dlMon=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');renderHabits()}
  else if(a)dlOpen(+a.dataset.dla,dAgo(0).slice(0,7)===dlMon?dAgo(0):dlMon+'-01');
  else if(l)dlOpen(+l.dataset.dle,l.dataset.d2);
  else if(tg){const h=H.habits[tg.dataset.dlt];h.dl=!h.dl;H.updatedAt=Date.now();hsave();renderHabits()}});
+// ===== Travel data view (built from the out duty day log) =====
+const dlHi=()=>{const i=H.habits.findIndex(h=>h.dl);return i<0?null:i};
+function dlCounts(h,mon){const L=h.log||{},t=dAgo(0),c=Object.fromEntries(DLT.map(x=>[x[0],0]));let od=0;
+ Object.keys(L).filter(d=>d.startsWith(mon)&&!L[d].del&&d<=t).forEach(d=>{if(L[d].type)c[L[d].type]++});Object.keys(h.days).forEach(d=>{if(d.startsWith(mon)&&h.days[d])od++});return{c,od}}
+function renderTravel(){const el=$('#travel'),i=dlHi();if(i===null){el.innerHTML=`<div class="hcard"><p>Turn on the day log on your out duty habit (Habits tab) to start your travel data.</p></div>`;return}
+ const h=H.habits[i],L=h.log||{},mons=[...new Set(Object.keys(L).filter(d=>!L[d].del).map(d=>d.slice(0,7)))].sort().reverse(),pl=new Set();
+ Object.keys(L).filter(d=>d.startsWith(dlMon)&&!L[d].del&&d<=dAgo(0)).forEach(d=>(L[d].place||'').split(',').map(s=>s.trim()).filter(s=>s&&s!=='Office').forEach(s=>pl.add(s)));
+ const{od}=dlCounts(h,dlMon);
+ el.innerHTML=`<div class="hcard" style="--c:${h.color}"><div class="hhead"><span class="hname static">🧳 Travel data</span><button class="dlcsv" data-csv="${i}">⬇ CSV</button></div>
+ <div class="tvs"><div><b>${od}</b><span>out duty days</span></div><div><b>${pl.size}</b><span>places visited</span></div></div>${dlPanel(i)}</div>
+ <div class="hcard"><div class="hhead"><span class="hname static">Month by month</span></div><table class="tvy"><tr><th>Month</th>${DLT.map(x=>`<th title="${x[1]}">${x[2]}</th>`).join('')}<th>OD</th></tr>
+ ${mons.map(m=>{const{c,od}=dlCounts(h,m);return `<tr data-tvm="${m}" class="${m===dlMon?'on':''}"><td>${new Date(m+'-01T00:00').toLocaleDateString('en-IN',{month:'short',year:'2-digit'})}</td>${DLT.map(x=>`<td>${c[x[0]]||''}</td>`).join('')}<td><b>${od}</b></td></tr>`}).join('')||'<tr><td colspan="8">No data yet</td></tr>'}</table></div>`}
+function dlCsv(i){const h=H.habits[i],L=h.log||{},q=s=>'"'+String(s||'').replace(/"/g,'""')+'"';
+ const rows=Object.keys(L).filter(d=>d.startsWith(dlMon)&&!L[d].del).sort().map(d=>[d,dlName(L[d].type),L[d].place,L[d].plan,L[d].act,h.days[d]?'Yes':''].map(q).join(','));
+ const txt='Date,Type,Place,Plan,Actual,Out duty\n'+rows.join('\n');if(typeof share==='function')share(`travel-${dlMon}.csv`,txt,'text/csv');else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/csv'}));a.download=`travel-${dlMon}.csv`;a.click()}}
+$('#travel').addEventListener('click',e=>{const m=e.target.closest('[data-dlm]'),a=e.target.closest('[data-dla]'),l=e.target.closest('[data-dle]'),cv=e.target.closest('[data-csv]'),tm=e.target.closest('[data-tvm]');
+ if(m){const[y,mo]=dlMon.split('-').map(Number),n=new Date(y,mo-1+Number(m.dataset.dlm),1);dlMon=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');renderTravel()}
+ else if(a)dlOpen(+a.dataset.dla,dAgo(0).slice(0,7)===dlMon?dAgo(0):dlMon+'-01');else if(l)dlOpen(+l.dataset.dle,l.dataset.d2);else if(cv)dlCsv(+cv.dataset.csv);
+ else if(tm){dlMon=tm.dataset.tvm;renderTravel()}});
+function dlMini(i){const h=H.habits[i],{c,od}=dlCounts(h,dAgo(0).slice(0,7));return `<div class="dlmini"><span>This month: ${od} OD · ${c.out} 🚆 · ${c.local} 🏙 · ${c.office} 🏢</span><button data-tvgo="1">Travel data ›</button></div>`}
+$('#habits').addEventListener('click',e=>{if(e.target.closest('[data-tvgo]')){view='travel';render()}});

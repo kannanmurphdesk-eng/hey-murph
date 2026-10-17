@@ -238,3 +238,12 @@ select.mv{max-width:120px}
 .dlty{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.dlty label{margin:0!important}
 .dlty input{position:absolute;opacity:0}.dlty span{display:inline-block;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px}
 .dlty input:checked+span{background:linear-gradient(90deg,#5F7BFF,#3ED1C0);border-color:transparent;color:#fff}
+#tabs button{font-size:11.5px;padding-left:0;padding-right:0}
+#tabs button[data-v=travel]{--t:#ffb347}
+.dlmini{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;font-size:12.5px;opacity:.9}
+.dlmini button,.dlcsv{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--c,#ffb347);border-radius:10px;padding:6px 10px;font-weight:600;min-height:0}
+.tvs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.tvs div{background:rgba(255,255,255,.05);border-radius:12px;padding:10px;text-align:center}
+.tvs b{display:block;font-size:22px;color:var(--c)}.tvs span{font-size:11px;opacity:.7}
+.tvy{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}.tvy th,.tvy td{padding:7px 4px;text-align:center;border-bottom:1px solid rgba(255,255,255,.06)}
+.tvy td:first-child,.tvy th:first-child{text-align:left}.tvy tr.on td{background:rgba(255,179,71,.1)}.tvy tr[data-tvm]{cursor:pointer}
+.dll li{animation:none;backdrop-filter:none;-webkit-backdrop-filter:none}

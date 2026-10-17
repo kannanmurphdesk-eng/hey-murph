@@ -25,7 +25,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 function render(){
  if(typeof fmigrate==='function')fmigrate();
  if(view==='flow')view=fview;const flv=FLOWV.includes(view);if(flv)fview=view;
- const hv=view==='habits'||view==='journal';$('#habits').hidden=view!=='habits';$('#journal').hidden=view!=='journal';$('#flow').hidden=!flv;if(flv&&typeof renderFlow==='function')renderFlow();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
+ const hv=view==='habits'||view==='journal'||view==='travel';$('#habits').hidden=view!=='habits';$('#travel').hidden=view!=='travel';if(view==='travel'&&typeof renderTravel==='function')renderTravel();$('#journal').hidden=view!=='journal';$('#flow').hidden=!flv;if(flv&&typeof renderFlow==='function')renderFlow();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
  const fv=CAPPED.includes(view);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===view||(fv&&b.dataset.v==='focus')||(flv&&b.dataset.v==='flow')));
  let sb=$('#sub');if(!sb){sb=document.createElement('div');sb.id='sub';$('#filters').before(sb);sb.onclick=e=>{const b=e.target.closest('[data-s]');if(b){view=b.dataset.s;render()}}}
  sb.hidden=!fv;sb.innerHTML=CAPPED.map(l=>`<button data-s="${l}" class="${view===l?'on':''}">${LN[l]} <small>${openIn(l).length}/${CAP}</small></button>`).join('');
@@ -69,7 +69,7 @@ function weekly(){const W=8,w=300,hh=90;let bars='',lab='';
 function renderHabits(){const t=dAgo(0);$('#habits').innerHTML=H.habits.map((h,i)=>{const s=hstats(h),on=h.days[t];
  return `<div class="hcard" style="--c:${h.color}"><div class="hhead"><button class="hname" data-hn="${i}" title="Tap to rename">${esc(h.name)} <span>✎</span></button><span class="hpct">${s.pct}%<small> 30d</small></span></div>
  <button class="hbig${on?' on':''}" data-ht="${i}">${on?'✓ Done today':'Mark today done'}${h.dl&&h.log&&h.log[t]&&!h.log[t].del&&h.log[t].type?' · '+dlName(h.log[t].type):''}</button>
- <div class="hst"><div><b>${s.cur}</b><span>current streak</span></div><div><b>${s.best}</b><span>best streak</span></div><div><b>${s.pct}%</b><span>last 30 days</span></div></div>${strip(h,i)}<button class="dltg" data-dlt="${i}">${h.dl?'📍 Day log on':'📍 Add day log (place, plan vs actual)'}</button>${h.dl?dlPanel(i):''}</div>`}).join('')
+ <div class="hst"><div><b>${s.cur}</b><span>current streak</span></div><div><b>${s.best}</b><span>best streak</span></div><div><b>${s.pct}%</b><span>last 30 days</span></div></div>${strip(h,i)}<button class="dltg" data-dlt="${i}">${h.dl?'📍 Day log on':'📍 Add day log (place, plan vs actual)'}</button>${h.dl?dlMini(i):''}</div>`}).join('')
  +`<div class="hcard wkc"><div class="hhead"><span class="hname static">Weekly completion</span><span class="leg">${H.habits.map(h=>`<i style="background:${h.color}"></i>${esc(h.name)}`).join(' ')}</span></div>${weekly()}</div>`}
 $('#habits').addEventListener('click',e=>{if(e.target.closest('.dlp,.dltg'))return;const b=e.target.closest('[data-ht],[data-hn],[data-d]');if(!b)return;
  if(b.dataset.hn){const h=H.habits[b.dataset.hn],n=prompt('Habit name',h.name);if(n&&n.trim())h.name=n.trim().slice(0,40)}
