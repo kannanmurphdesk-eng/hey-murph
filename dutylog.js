@@ -41,7 +41,7 @@ function renderTravel(){const el=$('#travel'),i=dlHi();if(i===null){el.innerHTML
  Object.keys(L).filter(d=>d.startsWith(dlMon)&&!L[d].del&&d<=dAgo(0)).forEach(d=>(L[d].place||'').split(',').map(s=>s.trim()).filter(s=>s&&s!=='Office').forEach(s=>pl.add(s)));
  const{od}=dlCounts(h,dlMon);
  el.innerHTML=`<div class="hcard" style="--c:${h.color}"><div class="hhead"><span class="hname static">🧳 Travel data</span><button class="dlcsv" data-csv="${i}">⬇ CSV</button></div>
- <div class="tvs"><div><b>${od}</b><span>out duty days</span></div><div><b>${pl.size}</b><span>places visited</span></div></div>${dlPanel(i)}</div>
+ <div class="tvs one"><div><b>${od}</b><span>out duty days</span></div></div>${dlPanel(i)}</div>
  <div class="hcard"><div class="hhead"><span class="hname static">Month by month</span></div><table class="tvy"><tr><th>Month</th>${DLT.map(x=>`<th title="${x[1]}">${x[2]}</th>`).join('')}<th>OD</th></tr>
  ${mons.map(m=>{const{c,od}=dlCounts(h,m);return `<tr data-tvm="${m}" class="${m===dlMon?'on':''}"><td>${new Date(m+'-01T00:00').toLocaleDateString('en-IN',{month:'short',year:'2-digit'})}</td>${DLT.map(x=>`<td>${c[x[0]]||''}</td>`).join('')}<td><b>${od}</b></td></tr>`}).join('')||'<tr><td colspan="8">No data yet</td></tr>'}</table></div>`}
 function dlCsv(i){const h=H.habits[i],L=h.log||{},q=s=>'"'+String(s||'').replace(/"/g,'""')+'"';
