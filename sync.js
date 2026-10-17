@@ -51,7 +51,8 @@ async function download(path){const r=await dbx('https://content.dropboxapi.com/
 async function upload(doc){const r=await dbx('https://content.dropboxapi.com/2/files/upload',{method:'POST',headers:{'Content-Type':'application/octet-stream','Dropbox-API-Arg':JSON.stringify({path:FILE,mode:'overwrite',mute:true})},body:JSON.stringify(doc,null,1)});
  if(!r.ok)throw new Error('upload '+r.status+' '+(await r.text()).slice(0,120))}
 // --- inbox: one-time data drops (e.g. day log entries added by the assistant)
-async function inbox(){const P='/heymurph-inbox.json';let d;try{d=await download(P)}catch(e){return}if(!d)return;const now=Date.now();
+async function inbox(){for(const P of['/heymurph-inbox.json','/heymurph-inbox-v41.json'])await inbox1(P)}
+async function inbox1(P){let d;try{d=await download(P)}catch(e){return}if(!d)return;const now=Date.now();
  if(d.untick&&H.habits[d.untick.habit||0]){const h=H.habits[d.untick.habit||0];h.ts=h.ts||{};(d.untick.dates||[]).forEach(dt=>{h.days[dt]=0;h.ts[dt]=now})}
  if(d.clearRemarks&&H.habits[d.clearRemarks.habit||0]){const h=H.habits[d.clearRemarks.habit||0],m=d.clearRemarks.month||'';Object.keys(h.log||{}).forEach(dt=>{if(dt.startsWith(m)&&!h.log[dt].del)h.log[dt]=Object.assign({},h.log[dt],{plan:'',act:'',ts:now})})}
  if(Array.isArray(d.names))d.names.forEach((n,k)=>{if(n&&H.habits[k])H.habits[k].name=n});
