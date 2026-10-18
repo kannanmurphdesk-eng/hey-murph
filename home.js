@@ -20,7 +20,7 @@ function renderHome(){const el=$('#home'),t=dAgo(0),mon=t.slice(0,7);
  // tasks
  const L=openIn('focus').sort((a,b)=>b.top-a.top).slice(0,CAP),od=L.filter(isOver).length;
  $('#htMeta').innerHTML=`${L.length}/${CAP} open${od?` · <span class="od">${od} overdue</span>`:''}`;
- $('#htList').innerHTML=L.map(i=>`<li class="${i.top?'top':''}" data-id="${i.id}" style="--stripe:${i.tags[0]?TC[i.tags[0]]:i.top?'#f5c96a':'#8f6bff'}"><button class="chk" data-a="done" aria-label="Done"></button><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div>${i.due||i.subs&&i.subs.length?`<div class="m">${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span>`:''}</div>`:''}</div></li>`).join('')||'<li class="empty">Focus list is clear.</li>';
+ $('#htList').innerHTML=L.slice(0,3).map(i=>`<li class="${i.top?'top':''}" data-id="${i.id}" style="--stripe:${i.tags[0]?TC[i.tags[0]]:i.top?'#f5c96a':'#8f6bff'}"><button class="chk" data-a="done" aria-label="Done"></button><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div>${i.due||i.subs&&i.subs.length?`<div class="m">${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span>`:''}</div>`:''}</div></li>`).join('')||'<li class="empty">Focus list is clear.</li>';
  // habits & travel
  const di=dlHi(),dh=di===null?null:H.habits[di],ml=new Date(mon+'-01T00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'});
  $('#hhMeta').textContent=ml;
