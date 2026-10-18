@@ -7,7 +7,7 @@ const fmon=m=>{if(!m)return'';const[y,mo]=m.split('-');return new Date(+y,+mo-1,
 const fcm=v=>v?'₹'+(+v).toLocaleString('en-IN',{maximumFractionDigits:2})+' L':'';
 let fview='po';
 let items=load(),view='home',tview='focus',hview='habits';
-const SEG=v=>v==='home'?'home':v==='journal'?'journal':(v==='habits'||v==='travel')?'habits':'tasks';
+const SEG=v=>v==='home'?'home':v==='customers'?'customers':v==='journal'?'journal':(v==='habits'||v==='travel')?'habits':'tasks';
 const TSEG=['focus','next','radar','cold','po','del','pay','done'],TSL={focus:'Focus',next:'Next',radar:'Radar',cold:'Cold',po:'PO',del:'Delivery',pay:'Payment',done:'Done'};
 const $=s=>document.querySelector(s);
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}

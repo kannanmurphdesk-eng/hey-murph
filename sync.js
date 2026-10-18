@@ -32,7 +32,7 @@ async function connect(){const v=b64u(crypto.getRandomValues(new Uint8Array(48))
  sessionStorage.setItem('hm.pkce',v);const st=b64u(crypto.getRandomValues(new Uint8Array(12)));sessionStorage.setItem('hm.state',st);
  location.href='https://www.dropbox.com/oauth2/authorize?'+new URLSearchParams({client_id:key,response_type:'code',code_challenge:ch,code_challenge_method:'S256',redirect_uri:REDIR,token_access_type:'offline',state:st})}
 async function tokenReq(p){const r=await fetch('https://api.dropboxapi.com/oauth2/token',{method:'POST',body:new URLSearchParams(Object.assign({client_id:key},p))});const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error_description||j.error||('token '+r.status)),{auth:r.status===400||r.status===401});return j}
-async function handleRedirect(){const q=new URLSearchParams(location.search),code=q.get('code');if(!code&&!q.get('error'))return;history.replaceState(null,'',location.pathname);
+async function handleRedirect(){const q=new URLSearchParams(location.search),code=q.get('code');if(!code&&!q.get('error'))return;if(/^vault\./.test(q.get('state')||''))return;history.replaceState(null,'',location.pathname);
  if(q.get('error')){toast('Dropbox: '+(q.get('error_description')||q.get('error')));return}
  const v=sessionStorage.getItem('hm.pkce');if(!v||q.get('state')!==sessionStorage.getItem('hm.state')){toast('Dropbox sign-in expired, try again');return}
  const j=await tokenReq({grant_type:'authorization_code',code,code_verifier:v,redirect_uri:REDIR});sessionStorage.removeItem('hm.pkce');
