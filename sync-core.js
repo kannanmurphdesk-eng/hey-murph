@@ -23,7 +23,7 @@ function mergeHabits(l,r){if(!r||!Array.isArray(r.habits))return l;if(!l||!Array
   for(const d of new Set([...Object.keys(a.days||{}),...Object.keys(b.days||{})])){const ta=at[d]||0,tb=bt[d]||0,va=a.days&&a.days[d],vb=b.days&&b.days[d];
    const v=ta>tb?va:tb>ta?vb:(va||vb);if(v)days[d]=1;else days[d]=0;if(ta||tb)ts[d]=Math.max(ta,tb)}
   const la=a.log||{},lb=b.log||{},log={};for(const d of new Set([...Object.keys(la),...Object.keys(lb)])){const x=la[d],y=lb[d];log[d]=!x?y:!y?x:((y.ts||0)>(x.ts||0)?y:x)}
-  const dn=n=>!n||/^Habit \d+$/.test(n),other=base===a?b:a,extra={};if(dn(base.name)&&!dn(other.name))extra.name=other.name;if(a.dl||b.dl)extra.dl=true;
+  const dn=n=>!n||/^Habit \d+$/.test(n),other=base===a?b:a,extra={};if(dn(base.name)&&!dn(other.name))extra.name=other.name;if(base.dl===undefined&&other.dl&&/duty/i.test(other.name||base.name||''))extra.dl=true;
   hs.push(Object.assign({},base,extra,{days,ts},Object.keys(log).length?{log}:{}))}
  return{habits:hs,updatedAt:Math.max(l.updatedAt||0,r.updatedAt||0)}}
 function mergeObj(l,r){if(!r)return l;if(!l)return r;return(r.updatedAt||0)>(l.updatedAt||0)?r:l}

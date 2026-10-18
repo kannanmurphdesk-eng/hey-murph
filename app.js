@@ -67,10 +67,11 @@ function weekly(){const W=8,w=300,hh=90;let bars='',lab='';
   bars+=`<rect x="${x+6+j*15}" y="${hh-12-bh}" width="13" height="${Math.max(bh,1.5)}" rx="3" fill="${h.color}"><title>${esc(h.name)}: ${c}/7</title></rect>`});
   lab+=`<text x="${x+20}" y="${hh}" text-anchor="middle">${k?'-'+k+'w':'now'}</text>`}
  return `<svg viewBox="0 0 ${w} ${hh+2}" class="wk" role="img" aria-label="Weekly completion">${[0,.5,1].map(f=>`<line x1="0" x2="${w}" y1="${hh-12-f*(hh-14)}" y2="${hh-12-f*(hh-14)}"/>`).join('')}${bars}${lab}</svg>`}
-function renderHabits(){const t=dAgo(0);$('#habits').innerHTML=H.habits.map((h,i)=>{const s=hstats(h),on=h.days[t];
+function hdlFix(){const on=H.habits.map((h,i)=>h.dl?i:-1).filter(i=>i>=0);if(on.length<2)return;const keep=on.find(i=>/duty/i.test(H.habits[i].name))??on[0];on.forEach(i=>{if(i!==keep)delete H.habits[i].dl});H.updatedAt=Date.now();hsave()}
+function renderHabits(){hdlFix();const t=dAgo(0);const anyDl=H.habits.some(h=>h.dl);$('#habits').innerHTML=H.habits.map((h,i)=>{const s=hstats(h),on=h.days[t];
  return `<div class="hcard" style="--c:${h.color}"><div class="hhead"><button class="hname" data-hn="${i}" title="Tap to rename">${esc(h.name)} <span>✎</span></button><span class="hpct">${s.pct}%<small> 30d</small></span></div>
  <button class="hbig${on?' on':''}" data-ht="${i}">${on?'✓ Done today':'Mark today done'}${h.dl&&h.log&&h.log[t]&&!h.log[t].del&&h.log[t].type?' · '+dlName(h.log[t].type):''}</button>
- <div class="hst"><div><b>${s.cur}</b><span>current streak</span></div><div><b>${s.best}</b><span>best streak</span></div><div><b>${s.pct}%</b><span>last 30 days</span></div></div>${strip(h,i)}<button class="dltg" data-dlt="${i}">${h.dl?'📍 Day log on':'📍 Add day log (place, plan vs actual)'}</button>${h.dl?dlMini(i):''}</div>`}).join('')
+ <div class="hst"><div><b>${s.cur}</b><span>current streak</span></div><div><b>${s.best}</b><span>best streak</span></div><div><b>${s.pct}%</b><span>last 30 days</span></div></div>${strip(h,i)}${h.dl||!anyDl?`<button class="dltg" data-dlt="${i}">${h.dl?'📍 Day log on':'📍 Add day log (place, remarks)'}</button>`:''}${h.dl?dlMini(i):''}</div>`}).join('')
  +`<div class="hcard wkc"><div class="hhead"><span class="hname static">Weekly completion</span><span class="leg">${H.habits.map(h=>`<i style="background:${h.color}"></i>${esc(h.name)}`).join(' ')}</span></div>${weekly()}</div>`}
 $('#habits').addEventListener('click',e=>{if(e.target.closest('.dlp,.dltg'))return;const b=e.target.closest('[data-ht],[data-hn],[data-d]');if(!b)return;
  if(b.dataset.hn){const h=H.habits[b.dataset.hn],n=prompt('Habit name',h.name);if(n&&n.trim())h.name=n.trim().slice(0,40)}
