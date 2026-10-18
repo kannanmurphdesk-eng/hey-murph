@@ -8,11 +8,12 @@ function renderHome(){const el=$('#home'),t=dAgo(0),mon=t.slice(0,7);
   <div class="hmrow"><button class="primary" id="hjSave">Save</button><button type="button" class="hmgo" data-go="journal">Open Journal ›</button></div></form></div>
  <div class="hcard hm" style="--c:#5F7BFF"><div class="hmh"><b>◎ Focus list</b><span id="htMeta"></span></div><ul id="htList"></ul>
   <button type="button" class="hmgo full" data-go="tasks">Open Tasks ›</button></div>
- <div class="hcard hm" id="hhCard" style="--c:#FFB83F"><div class="hmh"><b>🔥 Habits &amp; Travel</b><span id="hhMeta"></span></div><div id="hhTrav"></div><div class="hmticks" id="hhTicks"></div>
+ <div class="hcard hm" id="hhCard" style="--c:#FFB83F"><div class="hmh"><b>🔥 Habits &amp; Travel</b><span id="hhMeta"></span></div><div id="hhTrav"></div><div id="hh7"></div><div class="hmticks" id="hhTicks"></div>
   <button type="button" class="hmgo full" data-go="habits">Open Habits &amp; Travel ›</button></div>`;
   $('#hjForm').onsubmit=e=>{e.preventDefault();const x=$('#hjText'),v=x.value.trim();if(!v)return;J.push(jnorm({text:v,type:''}));jsave();x.value='';toast('Recorded '+jtime(Date.now()));render()};
   el.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)hmGo(g.dataset.go==='tasks'?tview:g.dataset.go==='habits'?hview:g.dataset.go)});
   $('#htList').onclick=e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.closest('li').dataset.id;if(a.dataset.a==='done'){const it=items.find(x=>x.id===id);toggleDone(id);if(it&&it.done)toast('Done ✓ '+it.title.slice(0,40))}else openEdit(id)};
+  $('#hh7').onclick=e=>{const b=e.target.closest('[data-c7]');if(b&&typeof cal7Go==='function')cal7Go(b.dataset.c7)};
   $('#hhTicks').onclick=e=>{const b=e.target.closest('[data-hmt]');if(b&&htick(+b.dataset.hmt,dAgo(0))){hsave();renderHome()}}}
  // journal
  const rec=J.filter(e=>jstage(e)==='inbox').length,pend=J.filter(e=>jstage(e)==='processed').length;
@@ -26,6 +27,7 @@ function renderHome(){const el=$('#home'),t=dAgo(0),mon=t.slice(0,7);
  $('#hhMeta').textContent=ml;
  if(dh){const{c,od:n}=dlCounts(dh,mon);$('#hhTrav').innerHTML=`<div class="hmod" style="--c:${dh.color}"><b>${n}</b><span>out duty days this month<small>🏙 Local ${c.local} + 🚆 Outstation ${c.out}</small></span></div><div class="dlc" style="--c:${dh.color}">${DLT.map(x=>`<div><b>${c[x[0]]}</b><span>${x[2]} ${x[1]}</span></div>`).join('')}</div>`}
  else $('#hhTrav').innerHTML='<p class="hmmut">Turn on the day log on your out duty habit (Habits) to see travel data here.</p>';
+ $('#hh7').innerHTML=typeof cal7==='function'?cal7():'';
  $('#hhTicks').innerHTML=H.habits.map((h,i)=>{const on=h.days[t],lg=h.dl&&h.log&&h.log[t]&&!h.log[t].del&&h.log[t].type?dlName(h.log[t].type):'',s=hstats(h);
   return `<button class="hbig hmt${on?' on':''}" data-hmt="${i}" style="--c:${h.color}"><span>${on?'✓ ':''}${esc(h.name)}</span><small>${on?'Done today':h.dl?'Log today':'Mark today'}${lg?' · '+lg:''} · 🔥${s.cur}</small></button>`}).join('')}
 // refresh Home after a day-log save/delete (dlClose re-renders habits)
