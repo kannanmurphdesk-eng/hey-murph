@@ -53,8 +53,10 @@ function putNote(n){NC[n.l]={t:n.text,r:n.rev,m:n.m,p:n.p,n:n.n,at:Date.now()};c
 async function openNote(l){const e=byL(l),c=NC[l];note={l,p:e?e.p:c?c.p:l,n:e?e.n:c?c.n:l.split('/').pop().replace(/\.md$/i,''),edit:false,conflict:false,saving:false,loading:false};
  if(c)Object.assign(note,{text:c.t,rev:c.r,m:c.m,cached:c.at});mode='note';draw(true);scrollTo(0,0);await loadNote()}
 async function loadNote(){const n=note;if(!n)return;if(!A.rt||!navigator.onLine){if(!navigator.onLine)offline=true;draw(true);return}n.loading=true;n.err='';draw(true);
- try{const r=await call('https://content.dropboxapi.com/2/files/download',{headers:{'Dropbox-API-Arg':harg({path:n.p})}});
-  if(!r.ok){const tx=await r.text();throw new Error(/not_found/.test(tx)?'Note not found in the vault (moved or renamed?). Tap ⟳ on the list to refresh.':'download '+r.status)}
+ try{const DU='https://content.dropboxapi.com/2/files/download';let r=await call(DU,{headers:{'Dropbox-API-Arg':harg({path:n.p})}});
+  if(r.status===400){r=await call(DU+'?arg='+encodeURIComponent(JSON.stringify({path:n.p})),{headers:{'Content-Type':'text/plain; charset=dropbox-cors-hack'}});
+   if(r.status===400&&n.l)r=await call(DU+'?arg='+encodeURIComponent(JSON.stringify({path:n.l})),{headers:{'Content-Type':'text/plain; charset=dropbox-cors-hack'}})}
+  if(!r.ok){const tx=await r.text();throw new Error(/not_found/.test(tx)?'Note not found in the vault (moved or renamed?). Tap ⟳ on the list to refresh.':'download '+r.status+' '+tx.slice(0,160))}
   let meta={};try{meta=JSON.parse(r.headers.get('Dropbox-API-Result')||'{}')}catch(x){}const t=await r.text(),ie=byL(n.l)||{};if(note!==n)return;
   Object.assign(n,{text:t,rev:meta.rev||ie.r,m:meta.server_modified||ie.m,cached:0});if(meta.path_display)n.p=meta.path_display;offline=false;putNote(n)}
  catch(e){if(note===n){if(e.auth||e instanceof TypeError)fail(e);else n.err=e.message}}finally{n.loading=false;if(note===n)draw()}}
