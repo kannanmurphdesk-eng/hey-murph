@@ -93,6 +93,7 @@ function md(src){src=String(src||'').replace(/\r\n?/g,'\n');let fm='';const f=sr
   const h=l.match(/^(#{1,6})\s+(.*)$/);if(h){const n=h[1].length;o.push(`<h${Math.min(n+1,6)} class="mh${n}">${inl(h[2].replace(/\s+#+\s*$/,''))}</h${Math.min(n+1,6)}>`);i++;continue}
   if(/^\s*([-*_])(\s*\1){2,}\s*$/.test(l)){o.push('<hr>');i++;continue}
   if(/^\s*\|/.test(l)&&i+1<L.length&&/^\s*\|?\s*:?-{2,}/.test(L[i+1])){const hd=cells(l);i+=2;const rows=[];while(i<L.length&&/^\s*\|/.test(L[i]))rows.push(cells(L[i++]));
+   if(hd.length>2){o.push(rows.map(r=>`<div class="mdv">${hd.map((c,k)=>(r[k]||'').trim()?`<div class="mdvr"><div class="mdvk">${inl(c)}</div><div class="mdvv">${inl(r[k])}</div></div>`:'').join('')}</div>`).join(''));continue}
    o.push(`<div class="mdt"><table><tr>${hd.map(c=>`<th>${inl(c)}</th>`).join('')}</tr>${rows.map(r=>`<tr>${hd.map((_,k)=>`<td>${inl(r[k]||'')}</td>`).join('')}</tr>`).join('')}</table></div>`);continue}
   if(/^\s*>/.test(l)){const b=[];while(i<L.length&&/^\s*>/.test(L[i]))b.push(L[i++].replace(/^\s*>\s?/,''));const co=b[0].match(/^\[!(\w+)\][-+]?\s*(.*)$/);if(co)b[0]=co[2]?`**${co[2]}**`:`**${co[1]}**`;
    o.push(`<blockquote${co?' class="callout"':''}>${b.map(inl).join('<br>')}</blockquote>`);continue}

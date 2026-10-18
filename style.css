@@ -294,3 +294,5 @@ select.mv{max-width:120px}
 .cufm{display:grid;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:10px;font-size:12.5px}.cufm div{display:flex;gap:10px}.cufm span{color:var(--mut);min-width:70px}.cufm b{font-weight:600}
 #cuNewF select,#cuNewF input{width:100%;margin-top:4px}
 #hcQ{width:100%}#hcRes{margin-top:6px}#hcRes .cui{min-height:42px;padding:8px 10px}
+
+.mdv{border:1px solid rgba(255,255,255,.12);border-radius:14px;margin:10px 0;overflow:hidden;background:rgba(255,255,255,.03)}.mdvr{display:flex;gap:10px;padding:8px 12px;border-top:1px solid rgba(255,255,255,.07)}.mdvr:first-child{border-top:0;background:rgba(95,123,255,.10)}.mdvk{flex:0 0 34%;font-size:.8em;opacity:.7;font-weight:600}.mdvv{flex:1;min-width:0;overflow-wrap:anywhere}
