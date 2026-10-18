@@ -250,3 +250,19 @@ select.mv{max-width:120px}
 .dlrm{margin-top:5px;font-size:12.5px;line-height:1.35;opacity:.85}.dlrm em{opacity:.6}
 .dll li{border:0;border-left:3px solid var(--c,#ffb347)}
 .tvs.one{grid-template-columns:1fr}
+/* ===== home dashboard + 4-tab nav (v48) ===== */
+#tabs button{font-size:12px;padding:6px 0}#tabs button b{font-size:19px}
+#tabs button[data-v=home]{--t:#a58bff}#tabs button[data-v=tasks]{--t:#5F7BFF}#tabs button[data-v=journal]{--t:#ff7ad9}#tabs button[data-v=habits]{--t:#FFB83F}
+#home .hcard{padding:14px;margin:10px 0}
+.hmh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}.hmh b{font-size:17px;color:var(--c)}.hmh span{font-size:12px;color:var(--mut);text-align:right}
+.hmh em{font-style:normal;font-weight:700}.hmh em.hmn{color:var(--c)}
+#hjText{width:100%;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:16px;resize:vertical;min-height:76px}
+.hmrow{display:flex;gap:8px;margin-top:8px}.hmrow button{flex:1}
+.hmgo{background:color-mix(in srgb,var(--c) 12%,transparent);border-color:color-mix(in srgb,var(--c) 40%,transparent);color:var(--c);font-weight:600}.hmgo.full{width:100%;margin-top:10px}
+#htList{padding:0}#htList li{margin:6px 0;padding:9px 10px;gap:10px}#htList li.empty{padding:18px}
+.hmod{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);border-radius:12px;padding:10px 12px}.hmod b{font-size:30px;color:var(--c);line-height:1;min-width:34px;text-align:center}
+.hmod span{font-size:13.5px;font-weight:600}.hmod small{display:block;font-weight:400;color:var(--mut);font-size:12px;margin-top:2px}
+.hmticks{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:10px}
+.hmt{margin:0;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:15.5px;padding:6px 8px}.hmt small{font-size:11.5px;font-weight:600;opacity:.85}
+.hmmut{color:var(--mut);font-size:13px}
+#sub{overflow-x:auto;scrollbar-width:none;position:relative;padding:2px 0}#sub::-webkit-scrollbar{display:none}#sub button{flex:none;white-space:nowrap;padding:8px 13px;min-height:40px}#sub.two button{flex:1}

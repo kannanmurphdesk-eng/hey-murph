@@ -6,7 +6,9 @@ const LN={focus:'Focus',next:'Next Action',radar:'Under Radar',cold:'Cold Storag
 const fmon=m=>{if(!m)return'';const[y,mo]=m.split('-');return new Date(+y,+mo-1,1).toLocaleString('en-IN',{month:'short',year:'numeric'})};
 const fcm=v=>v?'₹'+(+v).toLocaleString('en-IN',{maximumFractionDigits:2})+' L':'';
 let fview='po';
-let items=load(),view='focus';
+let items=load(),view='home',tview='focus',hview='habits';
+const SEG=v=>v==='home'?'home':v==='journal'?'journal':(v==='habits'||v==='travel')?'habits':'tasks';
+const TSEG=['focus','next','radar','cold','po','del','pay','done'],TSL={focus:'Focus',next:'Next',radar:'Radar',cold:'Cold',po:'PO',del:'Delivery',pay:'Payment',done:'Done'};
 const $=s=>document.querySelector(s);
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
 function save(){localStorage.setItem(KEY,JSON.stringify(items))}
@@ -25,16 +27,18 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 function render(){
  if(typeof fmigrate==='function')fmigrate();
  if(view==='flow')view=fview;const flv=FLOWV.includes(view);if(flv)fview=view;
- const hv=view==='habits'||view==='journal'||view==='travel';$('#habits').hidden=view!=='habits';$('#travel').hidden=view!=='travel';if(view==='travel'&&typeof renderTravel==='function')renderTravel();$('#journal').hidden=view!=='journal';$('#flow').hidden=!flv;if(flv&&typeof renderFlow==='function')renderFlow();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
- const fv=CAPPED.includes(view);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===view||(fv&&b.dataset.v==='focus')||(flv&&b.dataset.v==='flow')));
- let sb=$('#sub');if(!sb){sb=document.createElement('div');sb.id='sub';$('#filters').before(sb);sb.onclick=e=>{const b=e.target.closest('[data-s]');if(b){view=b.dataset.s;render()}}}
- sb.hidden=!fv;sb.innerHTML=CAPPED.map(l=>`<button data-s="${l}" class="${view===l?'on':''}">${LN[l]} <small>${openIn(l).length}/${CAP}</small></button>`).join('');
+ const sg=SEG(view);if(sg==='tasks')tview=view;else if(sg==='habits')hview=view;
+ const hv=sg!=='tasks';$('#home').hidden=view!=='home';if(view==='home'&&typeof renderHome==='function')renderHome();$('#habits').hidden=view!=='habits';$('#travel').hidden=view!=='travel';if(view==='travel'&&typeof renderTravel==='function')renderTravel();$('#journal').hidden=view!=='journal';$('#flow').hidden=!flv;if(flv&&typeof renderFlow==='function')renderFlow();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
+ const fv=CAPPED.includes(view);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===sg));
+ const sb=$('#sub');sb.hidden=sg!=='tasks'&&sg!=='habits';sb.classList.toggle('two',sg==='habits');
+ sb.innerHTML=sg==='tasks'?TSEG.map(l=>`<button data-s="${l}" class="${view===l?'on':''}">${TSL[l]} <small>${l==='done'?items.filter(i=>i.done).length:CAPPED.includes(l)?openIn(l).length+'/'+CAP:openIn(l).length}</small></button>`).join(''):sg==='habits'?[['habits','🔥 Habits'],['travel','🧳 Travel']].map(([k,n])=>`<button data-s="${k}" class="${view===k?'on':''}">${n}</button>`).join(''):'';
+ const so=sb.querySelector('.on');if(so&&(so.offsetLeft<sb.scrollLeft||so.offsetLeft+so.offsetWidth>sb.scrollLeft+sb.clientWidth))sb.scrollLeft=so.offsetLeft-12;
  const tf=$('#tagFilter').value;
  let L=hv?[]:view==='done'?items.filter(i=>i.done):openIn(view);
  if(tf)L=L.filter(i=>i.tags.includes(tf));
  if(view==='done')L.sort((a,b)=>b.doneAt-a.doneAt);else if(view==='po')L.sort((a,b)=>(a.month||'9999').localeCompare(b.month||'9999'));else L.sort((a,b)=>(b.top-a.top));
  const f=openIn('focus').length;$('#count').textContent=view==='focus'?`${f}/${CAP} open · ${openIn('focus').filter(i=>i.top).length}/${TOPCAP} top`:fv?`${openIn(view).length}/${CAP} open`:flv?`${LN[view]} · ${L.length} open`:`${L.length} item(s)`;
- $('#quote').style.display=view==='focus'?'':'none';
+ $('#quote').style.display=view==='home'?'':'none';
  $('#add').style.display=(fv||flv||view==='cold')?'flex':'none';$('#addInput').placeholder='Quick add to '+(LN[view]||'list')+'…';
  $('#list').innerHTML=L.map(i=>`<li class="${i.top?'top':''}" data-id="${i.id}" style="--stripe:${i.tags[0]?TC[i.tags[0]]:i.top?'#f5c96a':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button>
  <div class="body" data-a="edit"><div class="t">${esc(i.title)}${i.done&&typeof hasInsight==='function'&&hasInsight(i.id)?' <span class="insm" title="Has insight">💡</span>':''}</div><div class="m">${i.tags.map(t=>`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`).join('')}${i.list==='po'&&(i.cm||i.month)?`<span class="fpo">${[fcm(i.cm),fmon(i.month)].filter(Boolean).join(' · ')}</span> `:''}${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}${i.notes?'📝 ':''}${i.jid?'📓 ':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span>`:''}${view==='done'?' · '+(LN[i.list]||''):''}</div></div>
@@ -43,7 +47,8 @@ function render(){
 $('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.closest('li').dataset.id;
  if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else if(a.dataset.a==='insight')openInsight(id);else openEdit(id)});
 $('#list').addEventListener('change',e=>{const s=e.target.closest('[data-mv]');if(s)move(s.closest('li').dataset.id,s.value)});
-$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){view=b.dataset.v;render()}});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){const v=b.dataset.v;view=v==='tasks'?tview:v==='habits'?hview:v;render();scrollTo(0,0)}});
+$('#sub').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(b){view=b.dataset.s;render()}});
 $('#tagFilter').onchange=render;
 $('#tagFilter').innerHTML+=TAGS.map(t=>`<option>${t}</option>`).join('');
 $('#add').addEventListener('submit',e=>{e.preventDefault();if(add($('#addInput').value,LN[view]?view:'focus'))$('#addInput').value=''});
@@ -75,8 +80,10 @@ function renderHabits(){hdlFix();const t=dAgo(0);const anyDl=H.habits.some(h=>h.
  +`<div class="hcard wkc"><div class="hhead"><span class="hname static">Weekly completion</span><span class="leg">${H.habits.map(h=>`<i style="background:${h.color}"></i>${esc(h.name)}`).join(' ')}</span></div>${weekly()}</div>`}
 $('#habits').addEventListener('click',e=>{if(e.target.closest('.dlp,.dltg'))return;const b=e.target.closest('[data-ht],[data-hn],[data-d]');if(!b)return;
  if(b.dataset.hn){const h=H.habits[b.dataset.hn],n=prompt('Habit name',h.name);if(n&&n.trim())h.name=n.trim().slice(0,40)}
- else{const h=H.habits[b.dataset.ht??b.dataset.h],d=b.dataset.d||dAgo(0);if(h.dl&&!h.days[d]){dlOpen(+(b.dataset.ht??b.dataset.h),d);return}h.days[d]=h.days[d]?0:1;h.ts=h.ts||{};h.ts[d]=Date.now()}
+ else if(!htick(+(b.dataset.ht??b.dataset.h),b.dataset.d||dAgo(0)))return;
  hsave();renderHabits()});
+// tick/untick a habit day (shared by Habits and Home); a day-log habit opens the day log instead of ticking. Returns false if the dialog was opened.
+function htick(i,d){const h=H.habits[i];if(h.dl&&!h.days[d]){dlOpen(i,d);return false}h.days[d]=h.days[d]?0:1;h.ts=h.ts||{};h.ts[d]=Date.now();return true}
 let editing=null;
 let esubs=[];
 function drawSubs(){$('#eSubs').innerHTML=esubs.map((s,k)=>`<div class="fsub"><input type="checkbox" data-si="${k}"${s.done?' checked':''}><span class="${s.done?'dn':''}">${esc(s.t)}</span><button type="button" data-sd="${k}" aria-label="Delete">✕</button></div>`).join('')}

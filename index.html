@@ -6,12 +6,13 @@
 <meta name="apple-mobile-web-app-title" content="Hey Murph"><link rel="stylesheet" href="style.css"><script>try{if(localStorage.getItem('heymurph.pin.v1'))document.documentElement.classList.add('locked')}catch(e){}</script></head><body>
 <div class="bgfx" aria-hidden="true"></div><header><div><div id="greet" class="greet">Hello, sir</div><h1><img class="logo" src="icons/logo.png" alt="" width="30" height="30">Hey Murph</h1><div id="dateLine" class="date"></div></div><button id="menuBtn" class="icon" aria-label="Settings"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></header>
 <main>
+<section id="home" hidden></section>
 <figure id="quote" role="button" tabindex="0" aria-label="Tesseract quote, tap for next"><div class="qk">The Tesseract</div><blockquote id="qText"></blockquote><figcaption>— Kannan Mohanan <span class="qn">tap for next ›</span></figcaption></figure>
-<section id="flow" hidden></section><div id="filters"><select id="tagFilter"><option value="">All tags</option></select></div>
+<div id="sub" hidden></div><section id="flow" hidden></section><div id="filters"><select id="tagFilter"><option value="">All tags</option></select></div>
 <section id="habits" hidden></section><section id="journal" hidden></section><section id="travel" hidden></section><div id="count"></div><ul id="list"></ul>
 </main>
 <form id="add"><input id="addInput" placeholder="Quick add to current list…" autocomplete="off"><button>Add</button></form>
-<nav id="tabs"><button data-v="focus" class="on"><b>◎</b>Focus</button><button data-v="cold"><b>❄</b>Cold Storage</button><button data-v="done"><b>✓</b>Done</button><button data-v="flow"><b>🌊</b>Flow</button><button data-v="habits"><b>🔥</b>Habits</button><button data-v="travel"><b>🧳</b>Travel</button><button data-v="journal"><b>📓</b>Journal</button></nav>
+<nav id="tabs"><button data-v="home" class="on"><b>🏠</b>Home</button><button data-v="journal"><b>📓</b>Journal</button><button data-v="tasks"><b>◎</b>Tasks</button><button data-v="habits"><b>🔥</b>Habits</button></nav>
 <div id="toast"></div>
 <dialog id="edit"><form method="dialog" id="editForm">
 <label>Title<input name="title" required></label>
@@ -40,4 +41,4 @@
 <dialog id="insSheet"><div id="insBody"></div></dialog>
 <dialog id="rvSheet"><div id="rvBody"></div></dialog>
 <input type="file" id="fileIn" accept=".json,application/json" hidden>
-<script src="config.js"></script><script src="app.js"></script><script src="journal.js"></script><script src="flow.js"></script><script src="dutylog.js"></script><script src="review.js"></script><script src="insight.js"></script><script src="sync-core.js"></script><script src="sync.js"></script><script src="lock.js"></script></body></html>
+<script src="config.js"></script><script src="app.js"></script><script src="journal.js"></script><script src="flow.js"></script><script src="dutylog.js"></script><script src="review.js"></script><script src="insight.js"></script><script src="home.js"></script><script src="sync-core.js"></script><script src="sync.js"></script><script src="lock.js"></script></body></html>
