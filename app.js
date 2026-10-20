@@ -36,7 +36,7 @@ function render(){
  const tf=$('#tagFilter').value;
  let L=hv?[]:view==='done'?items.filter(i=>i.done):openIn(view);
  if(tf)L=L.filter(i=>i.tags.includes(tf));
- if(view==='done')L.sort((a,b)=>b.doneAt-a.doneAt);else if(view==='po')L.sort((a,b)=>(a.month||'9999').localeCompare(b.month||'9999'));else L.sort((a,b)=>(b.top-a.top));
+ if(view==='done')L.sort((a,b)=>b.doneAt-a.doneAt);else if(view==='po')L.sort((a,b)=>(a.due||'9999-99-99').localeCompare(b.due||'9999-99-99')||((+b.cm||0)-(+a.cm||0)));else L.sort((a,b)=>(b.top-a.top));
  const f=openIn('focus').length;$('#count').textContent=view==='focus'?`${f}/${CAP} open · ${openIn('focus').filter(i=>i.top).length}/${TOPCAP} top`:fv?`${openIn(view).length}/${CAP} open`:flv?`${LN[view]} · ${L.length} open`:`${L.length} item(s)`;
  $('#quote').style.display=view==='home'?'':'none';
  $('#add').style.display=(fv||flv||view==='cold')?'flex':'none';$('#addInput').placeholder='Quick add to '+(LN[view]||'list')+'…';
