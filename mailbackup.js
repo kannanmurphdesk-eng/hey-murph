@@ -23,5 +23,6 @@ const run=()=>{scan();flush()};let t;
 const raw=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){raw.call(this,k,v);if(k==='heymurph.journal.v1'){clearTimeout(t);t=setTimeout(run,3000)}};
 addEventListener('online',run);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')run();else{scan();flush()}});
 setInterval(run,120000);run();
-window.HMMail={run,cfg,queue:()=>get(QK,[])};
+function setCfg(url,token){const c=cfg();if(c&&c.url===url&&c.token===token)return false;put(CK,{url,token,since:Date.now()-864e5});try{toast('Journal email backup on')}catch(e){}run();return true}
+window.HMMail={run,cfg,setCfg,queue:()=>get(QK,[])};
 })();

@@ -78,10 +78,13 @@ async function inbox1(P){let d;try{d=await download(P)}catch(e){return}if(!d)ret
  H.updatedAt=now;localStorage.setItem('heymurph.habits.v1',JSON.stringify(H));
  try{await dbx('https://api.dropboxapi.com/2/files/delete_v2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:P})})}catch(e){}
  if(typeof renderHabits==='function'&&view==='habits')renderHabits();toast('Updated from Murph')}
+// --- mail relay config: /mailrelay.json in the app folder ({"url","token"}); read-only, never deleted
+let mrDone=false;async function mailRelay(){try{if(!window.HMMail||!HMMail.setCfg)return;if(mrDone&&HMMail.cfg())return;const d=await download('/mailrelay.json');mrDone=true;
+ if(d&&typeof d.url==='string'&&/^https:\/\//.test(d.url.trim())&&typeof d.token==='string'&&d.token.trim())HMMail.setCfg(d.url.trim(),d.token.trim())}catch(e){console.warn('mailrelay',e)}}
 // --- sync
 async function sync(){if(window.__hmReset)return;if(!key){ui('nocfg');return}if(!S.rt){ui('off');return}if(!navigator.onLine){ui('offline');return}
  if(busy){again=true;return}busy=true;const t0=Date.now();ui('syncing');
- try{stamp();await inbox();const remote=await download();const merged=C.mergeDoc(localDoc(),remote);
+ try{stamp();await inbox();await mailRelay();const remote=await download();const merged=C.mergeDoc(localDoc(),remote);
   const same=C.sameDoc(remote,merged);
   applyDoc(merged);if(!same)await upload(merged);S.last=Date.now();ssave();if(+(localStorage.getItem(PK)||0)<=t0)pend(0);retryMs=0;ui('synced')}
  catch(e){if(e.auth){S.rt='';S.at='';ssave();ui('off');toast('Dropbox sign-in expired — reconnect')}else if(!navigator.onLine||e instanceof TypeError)ui('offline');else ui('error',e.message);console.warn('sync',e);if(S.rt&&isPend()){retryMs=Math.min(retryMs?retryMs*2:5000,120000);schedule(retryMs)}}
