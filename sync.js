@@ -5,6 +5,7 @@ const SK='heymurph.sync.v1',FILE='/heymurph-data.json',KEYS=['heymurph.v1','heym
 const C=SyncCore,key=typeof DROPBOX_APP_KEY==='string'?DROPBOX_APP_KEY.trim():'',REDIR=typeof DROPBOX_REDIRECT_URI==='string'?DROPBOX_REDIRECT_URI:location.origin+location.pathname;
 let S;try{S=JSON.parse(localStorage.getItem(SK))||{}}catch(e){S={}}S.sh=S.sh||{};S.tomb=S.tomb||{items:{},journal:{}};S.tomb.flow=S.tomb.flow||{};
 const rawSet=Storage.prototype.setItem;let quiet=false,timer=null,busy=false,again=false,state='idle',errMsg='';
+const PK='heymurph.sync.pending',pend=v=>{try{v?rawSet.call(localStorage,PK,String(Date.now())):localStorage.removeItem(PK)}catch(e){}},isPend=()=>!!localStorage.getItem(PK);let retryMs=0;
 const ssave=()=>rawSet.call(localStorage,SK,JSON.stringify(S));
 // --- stamp local changes (lazy migration: adds updatedAt, records tombstones)
 function stamp(){if(window.__hmReset)return;const now=Date.now();
@@ -13,7 +14,7 @@ function stamp(){if(window.__hmReset)return;const now=Date.now();
  const fl=C.stampList(F,S.sh.flow||{},S.tomb.flow,now);S.sh.flow=fl.shadow;
  S.sh.habits=C.stampObj(H,S.sh.habits,now);
  quiet=true;try{localStorage.setItem('heymurph.v1',JSON.stringify(items));localStorage.setItem('heymurph.journal.v1',JSON.stringify(J));localStorage.setItem('heymurph.habits.v1',JSON.stringify(H));localStorage.setItem('heymurph.flow.v1',JSON.stringify(F))}finally{quiet=false}ssave()}
-Storage.prototype.setItem=function(k,v){if(window.__hmReset&&KEYS.includes(k))return;rawSet.call(this,k,v);if(!quiet&&this===localStorage&&KEYS.includes(k)){clearTimeout(stamp.t);stamp.t=setTimeout(()=>{stamp();schedule(2500)},0)}};
+Storage.prototype.setItem=function(k,v){if(window.__hmReset&&KEYS.includes(k))return;rawSet.call(this,k,v);if(!quiet&&this===localStorage&&KEYS.includes(k)){clearTimeout(stamp.t);pend(1);stamp.t=setTimeout(()=>{stamp();schedule(2500)},0)}};
 function localDoc(){return{items:C.withTombs(items,S.tomb.items),journal:C.withTombs(J,S.tomb.journal),flow:C.withTombs(F,S.tomb.flow),habits:H,meta:META}}
 function applyDoc(d){const a=C.split(d.items),b=C.split(d.journal),fs=C.split(d.flow||[]);items=a.live;J=b.live;F=fs.live;if(d.habits&&Array.isArray(d.habits.habits))H=d.habits;if(d.meta&&typeof d.meta==='object')META=d.meta;S.tomb={items:a.tombs,journal:b.tombs,flow:fs.tombs};
  quiet=true;try{localStorage.setItem('heymurph.v1',JSON.stringify(items));localStorage.setItem('heymurph.journal.v1',JSON.stringify(J));localStorage.setItem('heymurph.habits.v1',JSON.stringify(H));localStorage.setItem('heymurph.meta.v1',JSON.stringify(META));localStorage.setItem('heymurph.flow.v1',JSON.stringify(F))}finally{quiet=false}
@@ -23,7 +24,7 @@ function applyDoc(d){const a=C.split(d.items),b=C.split(d.journal),fs=C.split(d.
 const btn=document.createElement('button');btn.id='syncBtn';btn.className='icon sync';btn.setAttribute('aria-label','Sync');
 document.querySelector('#menuBtn').before(btn);const hb=document.createElement('div');hb.className='hbtns';btn.parentNode.insertBefore(hb,btn);hb.append(btn,document.querySelector('#menuBtn'));
 const ago=t=>{if(!t)return'never';const s=(Date.now()-t)/1e3;return s<60?'just now':s<3600?Math.floor(s/60)+' min ago':new Date(t).toLocaleString(undefined,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})};
-function ui(st,msg){if(st)state=st;if(msg!==undefined)errMsg=msg;const lab={nocfg:'Sync not configured',off:'Dropbox not connected — tap to connect',syncing:'Syncing…',synced:'Synced '+ago(S.last),offline:'Offline — will sync later',error:'Sync error: '+errMsg,idle:'Synced '+ago(S.last)}[state];
+function ui(st,msg){if(st)state=st;if(msg!==undefined)errMsg=msg;const lab0={nocfg:'Sync not configured',off:'Dropbox not connected — tap to connect',syncing:'Syncing…',synced:'Synced '+ago(S.last),offline:'Offline — will sync later',error:'Sync error: '+errMsg,idle:'Synced '+ago(S.last)}[state],lab=lab0+(isPend()&&state!=='syncing'?' · changes pending':'');
  btn.dataset.s=state;btn.title=lab;btn.innerHTML=`<span>${state==='syncing'?'⟳':state==='offline'?'⚡':state==='error'?'!':state==='nocfg'||state==='off'?'☁':'✓'}</span>`;
  const dl=document.querySelector('#dateLine');let sl=document.querySelector('#syncLine');if(!sl){sl=document.createElement('div');sl.id='syncLine';sl.className='date';dl.after(sl)}sl.textContent='☁ '+lab;sl.dataset.s=state}
 // --- OAuth PKCE
@@ -79,11 +80,11 @@ async function inbox1(P){let d;try{d=await download(P)}catch(e){return}if(!d)ret
  if(typeof renderHabits==='function'&&view==='habits')renderHabits();toast('Updated from Murph')}
 // --- sync
 async function sync(){if(window.__hmReset)return;if(!key){ui('nocfg');return}if(!S.rt){ui('off');return}if(!navigator.onLine){ui('offline');return}
- if(busy){again=true;return}busy=true;ui('syncing');
+ if(busy){again=true;return}busy=true;const t0=Date.now();ui('syncing');
  try{stamp();await inbox();const remote=await download();const merged=C.mergeDoc(localDoc(),remote);
   const same=C.sameDoc(remote,merged);
-  applyDoc(merged);if(!same)await upload(merged);S.last=Date.now();ssave();ui('synced')}
- catch(e){if(e.auth){S.rt='';S.at='';ssave();ui('off');toast('Dropbox sign-in expired — reconnect')}else if(!navigator.onLine||e instanceof TypeError)ui('offline');else ui('error',e.message);console.warn('sync',e)}
+  applyDoc(merged);if(!same)await upload(merged);S.last=Date.now();ssave();if(+(localStorage.getItem(PK)||0)<=t0)pend(0);retryMs=0;ui('synced')}
+ catch(e){if(e.auth){S.rt='';S.at='';ssave();ui('off');toast('Dropbox sign-in expired — reconnect')}else if(!navigator.onLine||e instanceof TypeError)ui('offline');else ui('error',e.message);console.warn('sync',e);if(S.rt&&isPend()){retryMs=Math.min(retryMs?retryMs*2:5000,120000);schedule(retryMs)}}
  finally{busy=false;if(again){again=false;schedule(500)}}}
 function schedule(ms){clearTimeout(timer);timer=setTimeout(sync,ms)}
 btn.onclick=()=>{if(!key)return toast('Sync not configured: add DROPBOX_APP_KEY in config.js');if(!S.rt)return connect();sync()};
@@ -96,7 +97,9 @@ document.querySelector('#menu').addEventListener('close',async()=>{if(document.q
  if(!confirm('Disconnect Dropbox? Local data stays on this device.'))return;try{await dbx('https://api.dropboxapi.com/2/auth/token/revoke',{method:'POST'})}catch(e){}
  S.rt=S.at='';S.exp=0;ssave();location.reload()});
 addEventListener('online',()=>schedule(300));addEventListener('offline',()=>ui('offline'));
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')schedule(300)});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')schedule(300);else if(isPend()){clearTimeout(stamp.t);stamp();clearTimeout(timer);sync()}});
+addEventListener('pagehide',()=>{if(isPend()){stamp();sync()}});addEventListener('focus',()=>schedule(300));
+setInterval(()=>{if(isPend()&&!busy&&navigator.onLine)schedule(0)},60000);
 setInterval(()=>{if(state==='synced')ui()},60000);
 window.HMSync={connect,linked:()=>!!(key&&S.rt),stamp,state:()=>state};
 stamp();ui(!key?'nocfg':S.rt?'idle':'off');
