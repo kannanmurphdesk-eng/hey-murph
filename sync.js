@@ -56,17 +56,23 @@ async function inbox(){for(const P of['/heymurph-inbox.json','/heymurph-inbox-v4
 // --- ops inbox: every file in /murph-ops is a list of operations from Murph, applied once then deleted
 async function opsInbox(){let r;try{r=await dbx('https://api.dropboxapi.com/2/files/list_folder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:'/murph-ops'})})}catch(e){return}if(!r.ok)return;
  const ents=((await r.json()).entries||[]).filter(e=>e['.tag']==='file'&&/\.json$/.test(e.name)).sort((a,b)=>a.name<b.name?-1:1);let n=0;
- for(const e of ents){let d;try{d=await download(e.path_lower)}catch(x){continue}if(!d)continue;try{(d.ops||[]).forEach(applyOp);n++}catch(x){console.warn('op',x)}
+ for(const e of ents){let d;try{d=await download(e.path_lower)}catch(x){continue}if(!d)continue;try{(d.ops||[]).forEach((o,i)=>applyOp(o,{file:e.name,i}));n++}catch(x){console.warn('op',x)}
   try{await dbx('https://api.dropboxapi.com/2/files/delete_v2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:e.path_lower})})}catch(x){}}
  if(n){H.updatedAt=Date.now();localStorage.setItem('heymurph.habits.v1',JSON.stringify(H));try{save()}catch(x){}try{render()}catch(x){}toast('Updated from Murph')}}
-window.HMApplyOp=(o)=>applyOp(o);
-function applyOp(o){const now=Date.now(),hab=()=>{const k=typeof o.habit==='number'?o.habit:H.habits.findIndex(h=>h.name.toLowerCase()===String(o.habit||'').toLowerCase());return H.habits[k<0?0:k]};
+window.HMApplyOp=(o,c)=>applyOp(o,c);
+// deterministic id for journal ops without an explicit id: 'op' + base36 FNV-1a(file#index)
+function opId(f,i){let h=0x811c9dc5;for(const ch of String(f)+'#'+i){h^=ch.charCodeAt(0);h=Math.imul(h,0x01000193)>>>0}return'op'+h.toString(36)+String(i).padStart(2,'0')}
+// created: now if no date / today (IST); else noon IST on that date
+function opCreated(dt,now){if(!/^\d{4}-\d{2}-\d{2}$/.test(dt||''))return now;const t=Date.parse(dt+'T12:00:00+05:30');if(isNaN(t))return now;const ist=new Date(now+19800000).toISOString().slice(0,10);return dt===ist?now:t}
+function applyOp(o,ctx={}){const now=Date.now(),hab=()=>{const k=typeof o.habit==='number'?o.habit:H.habits.findIndex(h=>h.name.toLowerCase()===String(o.habit||'').toLowerCase());return H.habits[k<0?0:k]};
  if(o.op==='log'){const h=hab();h.log=h.log||{};h.ts=h.ts||{};const p=h.log[o.date]&&!h.log[o.date].del?h.log[o.date]:{};h.log[o.date]={type:o.type??p.type??'',place:o.place??p.place??'',plan:o.remarks??p.plan??'',act:'',ts:now};
   if(o.date<=dAgo(0)){const on=['local','out','wo'].includes(h.log[o.date].type)?1:0;h.days[o.date]=on;h.ts[o.date]=now}}
  else if(o.op==='unlog'){const h=hab();if(h.log&&h.log[o.date])h.log[o.date]={del:1,ts:now}}
  else if(o.op==='tick'){const h=hab();h.ts=h.ts||{};h.days[o.date]=o.on===false?0:1;h.ts[o.date]=now}
  else if(o.op==='rename'){const h=hab();if(o.name)h.name=o.name}
  else if(o.op==='task'&&o.title&&typeof mk==='function'){const l=LN[o.list]?o.list:'focus';items.unshift(mk(o.title,l,o))}
+ else if(o.op==='journal'&&String(o.text||'').trim()&&typeof jnorm==='function'){const id=String(o.id||opId(ctx.file||'',ctx.i||0));
+  if(!J.some(x=>x.id===id)&&!(S.tomb.journal&&S.tomb.journal[id]!==undefined)){J.push(jnorm({id,text:String(o.text).trim(),customer:o.customer||'',type:o.type||'',created:opCreated(o.date,now)}));jsave()}}
  else if(o.op==='taskdone'&&o.id){const it=items.find(x=>x.id===o.id);if(it){it.done=true;it.doneAt=now}}}
 async function inbox1(P){let d;try{d=await download(P)}catch(e){return}if(!d)return;const now=Date.now();
  if(d.untick&&H.habits[d.untick.habit||0]){const h=H.habits[d.untick.habit||0];h.ts=h.ts||{};(d.untick.dates||[]).forEach(dt=>{h.days[dt]=0;h.ts[dt]=now})}
