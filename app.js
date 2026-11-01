@@ -128,17 +128,16 @@ $('#paste').addEventListener('close',()=>{if($('#paste').returnValue==='ok'){con
 $('#fileIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const d=JSON.parse(await f.text());const arr=Array.isArray(d)?d:d.items;if(!Array.isArray(arr))throw 0;
  if(!confirm(`Replace all current data with ${arr.length} items from backup?`))return;items=arr.map(x=>Object.assign(mk(x.title||'',LN[x.list]?x.list:'focus',x),{id:x.id||uid(),created:x.created||Date.now(),doneAt:x.doneAt||null},Array.isArray(x.subs)?{subs:x.subs}:{},x.cm?{cm:x.cm}:{},x.month?{month:x.month}:{},x.notes?{notes:String(x.notes)}:{},x.jid?{jid:x.jid}:{}));if(d&&Array.isArray(d.journal)&&typeof jImport==='function')jImport(d.journal);if(d&&d.habits&&Array.isArray(d.habits.habits)){H=d.habits;hsave()}if(d&&d.meta&&typeof META!=='undefined'){META=d.meta;msave()}if(d&&Array.isArray(d.flow)&&typeof F!=='undefined'){F=d.flow;fsave()}save();render();toast('Backup restored')}catch(_){toast('Not a valid Hey Murph backup.')}};
 const QUOTES=[
-"Calm isn't the absence of chaos — it's the presence of a system.",
-"A system with clarity on both the problem and the desired outcome has 80% solved its purpose.",
-"Don't try to optimize what you should eliminate. Before asking 'How can I do this faster?', ask 'Does this need to be done at all?'",
-"Daydreaming for applause is a trap; rehearsing for the real task is a tool.",
-"Uncertainty is inevitable — the only real control is the system you build to handle it.",
-"You can't stop things from going wrong, but you can build the sprinkler system before the fire.",
-"You're not lazy. You're not lost. You're just carrying too many open tabs in your head, and no one taught you how to close them.",
-"This book won't decide the path. It will give light so the aspirant can walk their own, with confidence and clarity.",
-"Yes, fatigue isn't the problem — the way I'm dealing with it is.",
-"Time is the most valuable resource we have.",
-"Most of the time, we are like the Roman Emperor Nero, we forget what is important and give importance to things that are not worth our attention."];
+"Life is a trade-off. Choose what you trade, and what you get for it. Trade wisely.",
+"Your focus is like a boat with only ten seats. Choose who sits there carefully.",
+"First stop the damage in front of you. Then make sure it doesn't happen again.",
+"Not now doesn't mean never. Cold Storage is where good tasks wait.",
+"Your list works for you. You don't work for your list.",
+"Win one small thing now. It powers the next big thing.",
+"Chaos and calm are both options. The choice is yours.",
+"Busy isn't progress. Direction is.",
+"Ignoring a small leak today will make you fight a flood tomorrow. Small misses grow into big storms, so catch them early.",
+"Be the shark that keeps others moving and alive."];
 let qi=(Math.floor(Date.now()/864e5)+Math.floor(Math.random()*QUOTES.length))%QUOTES.length;
 function showQuote(){const b=$('#qText');b.classList.remove('in');void b.offsetWidth;b.textContent=QUOTES[qi];$('#quote').style.setProperty('--h',(qi*47)%360);b.classList.add('in')}
 function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote()}
