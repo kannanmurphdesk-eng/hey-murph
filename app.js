@@ -27,13 +27,14 @@ function move(id,to){const i=items.find(x=>x.id===id);if(!to||to===i.list||!canI
 function toggleDone(id){const i=items.find(x=>x.id===id);if(i.done&&!canIn(i.list))return;i.done=!i.done;i.doneAt=i.done?Date.now():null;if(i.done)i.top=false;save();render()}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 // v65: Under radar and Next action are retired; anything still there (old data or ops) goes to Cold storage.
-function legacyMove(){let c=0;for(const i of items)if(i.list==='next'||i.list==='radar'){i.list='cold';i.top=false;c++}if(c)save()}
+function legacyMove(){let c=0;for(const i of items)if(i.list==='next'||i.list==='radar'){i.list='cold';i.top=false;i.updatedAt=Date.now();c++}if(c)save()}
 // v65 one-time: open Focus tasks become topics (no tag) and their action goes to To do. Deterministic ids so it is safe to run on more than one device.
-const V65T={mvor0n2bdv159:'NIT Calicut – PARIO',mvmrzfi9ps583:'IIT Dharwad – TEMPOS',mvm34e7ado6yq:'ICAR-CICR – Atmos 41',mve8wcaxz4zdc:'IIT Palakkad – HYPROP 3',mvvpxntccgcbq:'BITS Pilani – DAQ Strain',mvojuzk5ijutn:'ideaForge – Requirements',mvclmoz0umm3o:'NCESS – HYPROP',mv80tj7e9636n:'IIT Palakkad – Ankesh quote',mvk4r2xk74jbn:'JTEKT – Appmeas Torque',mvktkj5bmf2ru:'SRM – DT80'};
+const V65T={mvor0n2bdv159:'NIT Calicut - Pario',mvmrzfi9ps583:'IIT Dharwad - Tempos',mvm34e7ado6yq:'ICAR-CICR - Atmos 41',mve8wcaxz4zdc:'IIT Palakkad - Hyprop 3',mvvpxntccgcbq:'BITS Pilani - DAQ',mvojuzk5ijutn:'ideaForge - Requirements',mvclmoz0umm3o:'NCESS - Hyprop',mv80tj7e9636n:'IIT Palakkad - Quote feedback',mvk4r2xk74jbn:'JTEKT - Torque',mvktkj5bmf2ru:'SRM - DT80'};
 function v65mig(){let c=0;
  for(const i of items.filter(x=>x.list==='focus'&&!x.done&&!x.v65&&V65T[x.id])){const tid='td_'+i.id;
-  if(!items.some(x=>x.id===tid)){const t=mk(i.title,'todo',{due:i.due,subs:i.subs,important:i.tags.includes('damage control'),urgent:i.tags.includes('damage control'),topic:i.id,customer:i.customer});t.id=tid;if(i.notes)t.notes=i.notes;if(i.jid)t.jid=i.jid;items.push(t)}
-  const p=i.title.split(' - ');i.title=V65T[i.id]||(p.length>1?p[0]+' – '+p[1]:i.title);i.tags=[];i.due='';delete i.subs;i.top=false;i.v65=1;c++}
+  if(!items.some(x=>x.id===tid)){const t=mk(i.title,'todo',{due:i.due,subs:i.subs,important:i.tags.includes('damage control'),urgent:i.tags.includes('damage control'),topic:i.id,customer:i.customer});t.id=tid;t.updatedAt=Date.now();if(i.notes)t.notes=i.notes;if(i.jid)t.jid=i.jid;items.push(t)}
+  i.title=V65T[i.id];i.tags=[];i.due='';delete i.subs;i.top=false;i.v65=2;i.updatedAt=Date.now();c++}
+ for(const i of items)if(i.v65===1&&V65T[i.id]&&i.list==='focus'){i.title=V65T[i.id];i.v65=2;i.updatedAt=Date.now();c++}
  if(c)save()}
 const todoRank=i=>(isOver(i)?0:10)+(i.important&&i.urgent?0:i.important?1:i.urgent?2:3);
 const todoSort=(a,b)=>todoRank(a)-todoRank(b)||(a.due||'9999').localeCompare(b.due||'9999')||a.created-b.created;
