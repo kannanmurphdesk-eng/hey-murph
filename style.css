@@ -329,3 +329,10 @@ select.mv{max-width:120px}
 #list li.mhd{list-style:none;background:none;border:0;box-shadow:none;padding:10px 4px 2px;font-weight:700;color:#9fb0ff;font-size:.85em;letter-spacing:.03em}
 
 .jconv{margin-top:8px}.jconv button{flex:1;min-height:36px;padding:6px 10px;font-size:13px}#jtodlg .jconv button{flex:1 1 45%}
+.pobar{display:flex;flex-direction:column;gap:6px;margin:4px 0}.pobar input[type=search]{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:inherit;font-size:1em}
+.pohd{display:flex;justify-content:space-between;align-items:center;font-size:.9em}.poopt{display:flex;flex-wrap:wrap;gap:10px;font-size:.78em;opacity:.85;align-items:center}.plg{font-size:.78em;opacity:.8}
+.pq{background:#ff5e5e;color:#fff;border-radius:8px;padding:0 6px;font-weight:700;font-size:.85em}.pt{background:#ffb547;color:#1a1200;border-radius:8px;padding:0 6px;font-weight:700;font-size:.85em}.pbl{opacity:.35}
+#list li.pocard{display:block;cursor:pointer;padding:12px 14px}#list li.pocard.poin{opacity:.55}.pot1{font-weight:700;margin-bottom:4px}.pomt{display:flex;gap:6px;flex-wrap:wrap;font-size:.75em;opacity:.8;margin-bottom:6px}.pst{color:#9fb0ff}
+.pogr{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;font-size:.85em}.pogr small{display:block;font-size:.72em;opacity:.6}.ponx{margin-top:6px;font-size:.85em;opacity:.9}
+dialog.poed label{display:flex;flex-direction:column;gap:4px;margin:6px 0}dialog.poed label.row{flex-direction:row;align-items:center}
+.poopt label{display:inline-flex;align-items:center;gap:4px}.poopt input{width:16px;height:16px;margin:0;flex:none}
