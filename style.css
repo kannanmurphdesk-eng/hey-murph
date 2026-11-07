@@ -344,3 +344,6 @@ dialog.poed label{display:flex;flex-direction:column;gap:4px;margin:6px 0}dialog
 .ftop .m{margin-left:32px}.fcnt,.ftp{font-size:11.5px;opacity:.7;margin-right:6px}
 .mki,.mku{display:inline-block;padding:1px 7px;margin:0 4px 4px 0;border-radius:999px;font-size:11px;font-weight:600}.mki{background:rgba(255,181,71,.16);color:#ffcf85;border:1px solid rgba(255,181,71,.4)}.mku{background:rgba(255,79,180,.15);color:#ff9fd6;border:1px solid rgba(255,79,180,.4)}
 .etd{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}.etd label:not(.row){flex:1 1 100%}
+
+/* v67 topics: name + its to-dos only */
+.ftop{display:block}.ftop .t{font-weight:600;font-size:16px}.ftd{font-size:13px;opacity:.75;padding:5px 0 0 14px;position:relative;cursor:pointer}.ftd::before{content:'•';position:absolute;left:2px}

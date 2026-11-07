@@ -62,12 +62,12 @@ function render(){
 }
 const tagChip=t=>t?`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`:'';
 function renderTopics(){const L=openIn('focus').sort((a,b)=>b.top-a.top);
- $('#list').innerHTML=L.map((i,k)=>{const n=openIn('todo').filter(x=>x.topic===i.id).length;const t=(i.tags||[]).find(x=>FTAGS.includes(x));
-  return `<li class="ftop" data-id="${i.id}" style="--stripe:${t?TC[t]:'#5F7BFF'}"><div class="body" data-a="edit"><div class="t"><span class="fnum">${k+1}</span>${esc(i.title)}</div>${t||n?`<div class="m">${tagChip(t)}${n?`<span class="fcnt">${n} to do</span>`:''}</div>`:''}</div></li>`}).join('')||'<li class="empty">No topics yet. Add up to 10.</li>'}
+ $('#list').innerHTML=L.map(i=>{const td=openIn('todo').filter(x=>x.topic===i.id).sort(todoSort);
+  return `<li class="ftop" data-id="${i.id}"><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div></div>${td.map(x=>`<div class="ftd" data-a="edit" data-tid="${x.id}">${esc(x.title)}</div>`).join('')}</li>`}).join('')||'<li class="empty">No topics yet.</li>'}
 function todoRow(i){const tp=i.topic&&items.find(x=>x.id===i.topic);
  return `<li class="tdo" data-id="${i.id}" style="--stripe:${i.important&&i.urgent?'#ff6b5e':i.important?'#ffb547':i.urgent?'#ff4fb4':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.important?'<span class="mki">Important</span>':''}${i.urgent?'<span class="mku">Urgent</span>':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span> `:''}${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}${tp?`<span class="ftp">◎ ${esc(tp.title)}</span>`:''}</div></div></li>`}
 function renderTodo(){const L=openIn('todo').sort(todoSort);$('#list').innerHTML=L.map(todoRow).join('')||'<li class="empty">Nothing to do. Clear skies.</li>'}
-$('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.closest('li').dataset.id;
+$('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.dataset.tid||a.closest('li').dataset.id;
  if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else if(a.dataset.a==='insight')openInsight(id);else openEdit(id)});
 $('#list').addEventListener('change',e=>{const s=e.target.closest('[data-mv]');if(s)move(s.closest('li').dataset.id,s.value)});
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){const v=b.dataset.v;view=v==='tasks'?tview:v==='habits'?hview:v;render();scrollTo(0,0)}});
