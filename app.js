@@ -23,7 +23,7 @@ const canFocus=()=>canIn('focus');
 const subsOf=o=>{const a=Array.isArray(o.subs)?o.subs:Array.isArray(o.subtasks)?o.subtasks:[];return a.map(s=>typeof s==='string'?{t:s,done:false}:{t:String(s.t||s.title||''),done:!!s.done}).filter(s=>s.t)};
 function mk(title,list,o={}){return{id:uid(),title:title.trim(),list,tags:(o.tags||[]).filter(t=>TAGS.includes(t)),due:o.due||'',customer:(o.customer||'').trim(),top:!!o.top&&list==='focus',done:!!o.done,created:Date.now(),doneAt:o.done?Date.now():null,...(subsOf(o).length?{subs:subsOf(o)}:{}),...(o.important?{important:true}:{}),...(o.urgent?{urgent:true}:{}),...(o.topic?{topic:String(o.topic)}:{}),...(o.cm?{cm:String(o.cm)}:{}),...(o.month?{month:String(o.month)}:{})}}
 function add(title,list){if(!title.trim())return false;if(!canIn(list))return false;items.push(mk(title,list));save();render();return true}
-function move(id,to){const i=items.find(x=>x.id===id);if(!to||to===i.list||!canIn(to))return render();i.list=to;if(to!=='focus')i.top=false;save();render()}
+function move(id,to){const i=items.find(x=>x.id===id);if(i&&i.list==='focus'&&!i.done&&to!=='focus')return render();if(!to||to===i.list||!canIn(to))return render();i.list=to;if(to!=='focus')i.top=false;save();render()}
 function toggleDone(id){const i=items.find(x=>x.id===id);if(i.done&&!canIn(i.list))return;i.done=!i.done;i.doneAt=i.done?Date.now():null;if(i.done)i.top=false;save();render()}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 // v65: Under radar and Next action are retired; anything still there (old data or ops) goes to Cold storage.
@@ -35,6 +35,9 @@ function v65mig(){let c=0;
   if(!items.some(x=>x.id===tid)){const t=mk(i.title,'todo',{due:i.due,subs:i.subs,important:i.tags.includes('damage control'),urgent:i.tags.includes('damage control'),topic:i.id,customer:i.customer});t.id=tid;t.updatedAt=Date.now();if(i.notes)t.notes=i.notes;if(i.jid)t.jid=i.jid;items.push(t)}
   i.title=V65T[i.id];i.tags=[];i.due='';delete i.subs;i.top=false;i.v65=2;i.updatedAt=Date.now();c++}
  for(const i of items)if(i.v65===1&&V65T[i.id]&&i.list==='focus'){i.title=V65T[i.id];i.v65=2;i.updatedAt=Date.now();c++}
+
+ const V69P={mvor0n2bdv159:'mvpario003696',mvmrzfi9ps583:'mvgw5ekegfk6o',mve8wcaxz4zdc:'mvgw5ekeu3yrx',mvvpxntccgcbq:'mvgw5ekfe5oq7',mvclmoz0umm3o:'mvgw5ekf9i8bu',mv80tj7e9636n:'mvgw5ekf0osmu'};
+ for(const i of items)if(i.list==='focus'&&V69P[i.id]&&!i.poSet){if(!i.po)i.po=V69P[i.id];i.poSet=1;i.updatedAt=Date.now();c++}
  if(c)save()}
 const todoRank=i=>(isOver(i)?0:10)+(i.important&&i.urgent?0:i.important?1:i.urgent?2:3);
 const todoSort=(a,b)=>todoRank(a)-todoRank(b)||(a.due||'9999').localeCompare(b.due||'9999')||a.created-b.created;
@@ -63,12 +66,12 @@ function render(){
 const tagChip=t=>t?`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`:'';
 function renderTopics(){const L=openIn('focus').sort((a,b)=>b.top-a.top);
  $('#list').innerHTML=L.map(i=>{const td=openIn('todo').filter(x=>x.topic===i.id).sort(todoSort);
-  return `<li class="ftop" data-id="${i.id}"><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div>${(t=>t?`<div class="m">${tagChip(t)}</div>`:"")((i.tags||[]).find(x=>FTAGS.includes(x)))}</div>${td.map(x=>`<div class="ftd" data-a="edit" data-tid="${x.id}">${esc(x.title)}</div>`).join('')}</li>`}).join('')||'<li class="empty">No topics yet.</li>'}
+  return `<li class="ftop" data-id="${i.id}"><div class="body" data-a="edit"><div class="t">${esc(i.title)}${i.po&&items.find(p=>p.id===i.po)?`<span class="fpo" data-a="po" data-pid="${i.po}">PO ›</span>`:""}</div>${(t=>t?`<div class="m">${tagChip(t)}</div>`:"")((i.tags||[]).find(x=>FTAGS.includes(x)))}</div>${td.map(x=>`<div class="ftd" data-a="edit" data-tid="${x.id}">${esc(x.title)}</div>`).join('')}</li>`}).join('')||'<li class="empty">No topics yet.</li>'}
 function todoRow(i){const tp=i.topic&&items.find(x=>x.id===i.topic);
  return `<li class="tdo" data-id="${i.id}" style="--stripe:${i.important&&i.urgent?'#ff6b5e':i.important?'#ffb547':i.urgent?'#ff4fb4':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.important?'<span class="mki">Important</span>':''}${i.urgent?'<span class="mku">Urgent</span>':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span> `:''}${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}${tp?`<span class="ftp">◎ ${esc(tp.title)}</span>`:''}</div></div></li>`}
 function renderTodo(){const L=openIn('todo').sort(todoSort);$('#list').innerHTML=L.map(todoRow).join('')||'<li class="empty">Nothing to do. Clear skies.</li>'}
 $('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.dataset.tid||a.closest('li').dataset.id;
- if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else if(a.dataset.a==='insight')openInsight(id);else openEdit(id)});
+ if(a.dataset.a==='po'){openPO(a.dataset.pid);return}if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else if(a.dataset.a==='insight')openInsight(id);else openEdit(id)});
 $('#list').addEventListener('change',e=>{const s=e.target.closest('[data-mv]');if(s)move(s.closest('li').dataset.id,s.value)});
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){const v=b.dataset.v;view=v==='tasks'?tview:v==='habits'?hview:v;render();scrollTo(0,0)}});
 $('#sub').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(b){view=b.dataset.s;render()}});
@@ -122,7 +125,7 @@ function drawSubs(){$('#eSubs').innerHTML=esubs.map((s,k)=>`<div class="fsub"><i
  f.list.onchange=()=>{po.hidden=f.list.value!=='po';dueMode(f,f.list.value==='po');editMode(f,f.list.value)}})();
 function editMode(f,l){const fo=l==='focus';$('#eTodo').hidden=l!=='todo';$('#tagBox').hidden=l==='todo';f.top.closest('label').hidden=true;
  f.due.closest('label').hidden=fo;f.notes.closest('label').hidden=fo;$('#eSubBox').hidden=fo;$('#eListL').hidden=fo;
- let lk=$('#eLinks');if(!lk){lk=document.createElement('fieldset');lk.id='eLinks';lk.className='elk';$('#tagBox').after(lk)}lk.hidden=!fo;
+ let lk=$('#eLinks');if(!lk){lk=document.createElement('fieldset');lk.id='eLinks';lk.className='elk';$('#tagBox').after(lk)}lk.hidden=!fo;let pw=$('#ePoL');if(!pw){pw=document.createElement('label');pw.id='ePoL';pw.innerHTML='PO card<select name="pocard"></select>';$('#tagBox').before(pw)}pw.hidden=!fo;if(fo){const cur=editing&&editing.po||'';f.pocard.innerHTML='<option value="">— none —</option>'+items.filter(p=>p.list==='po'&&!p.done&&!p.deleted&&(p.active!==false||p.id===cur)).sort((a,b)=>a.title.localeCompare(b.title)).map(p=>`<option value="${p.id}"${p.id===cur?' selected':''}>${esc(p.title)}</option>`).join('')}
  if(fo){const T=openIn('todo').sort(todoSort),me=editing&&editing.id,lnk=T.filter(t=>t.topic===me),fr=T.filter(t=>t.topic!==me);
   lk.innerHTML='<legend>Linked to-dos</legend>'+lnk.map(t=>`<label class="row"><input type="checkbox" name="lk" value="${t.id}" checked> ${esc(t.title)}</label>`).join('')+(fr.length?`<select id="eLkAdd"><option value="">+ Link a to-do</option>${fr.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join('')}</select>`:'');
   const ad=$('#eLkAdd');if(ad)ad.onchange=()=>{const o=ad.selectedOptions[0];if(!ad.value)return;const l=document.createElement('label');l.className='row';l.innerHTML=`<input type="checkbox" name="lk" value="${ad.value}" checked> ${esc(o.textContent)}`;ad.before(l);o.remove();ad.value=''}}
@@ -135,8 +138,8 @@ function openEdit(id){editing=items.find(x=>x.id===id);const f=$('#editForm');f.
 $('#edit').addEventListener('close',()=>{const r=$('#edit').returnValue,f=$('#editForm'),i=editing;if(!i)return;editing=null;
  if(r==='delete'){if(confirm('Delete "'+i.title+'"?')){items=items.filter(x=>x!==i);save();render()}return}
  if(r!=='save')return;
- if(f.list.value!==i.list){if(!i.done&&!canIn(f.list.value))return;i.list=f.list.value;if(i.list!=='focus')i.top=false}
- if(esubs.length||i.subs)i.subs=esubs;if(i.list==='todo'){i.important=f.imp.checked;i.urgent=f.urg.checked}if(i.list==='focus'){const on=new Set([...f.querySelectorAll('[name=lk]:checked')].map(c=>c.value)),now=Date.now();for(const t of openIn('todo')){if(on.has(t.id)&&t.topic!==i.id){t.topic=i.id;t.updatedAt=now}else if(!on.has(t.id)&&t.topic===i.id){t.topic='';t.updatedAt=now}}}if(i.list==='po'){if(f.cm.value||i.cm)i.cm=f.cm.value;if(f.month.value||i.month)i.month=f.month.value}
+ if(f.list.value!==i.list&&i.list!=='focus'){if(!i.done&&!canIn(f.list.value))return;i.list=f.list.value;if(i.list!=='focus')i.top=false}
+ if(esubs.length||i.subs)i.subs=esubs;if(i.list==='todo'){i.important=f.imp.checked;i.urgent=f.urg.checked}if(i.list==='focus'){i.po=f.pocard.value;const on=new Set([...f.querySelectorAll('[name=lk]:checked')].map(c=>c.value)),now=Date.now();for(const t of openIn('todo')){if(on.has(t.id)&&t.topic!==i.id){t.topic=i.id;t.updatedAt=now}else if(!on.has(t.id)&&t.topic===i.id){t.topic='';t.updatedAt=now}}}if(i.list==='po'){if(f.cm.value||i.cm)i.cm=f.cm.value;if(f.month.value||i.month)i.month=f.month.value}
  if(f.top.checked&&!i.top){if(i.list!=='focus'||i.done)toast('Top priority only applies to open Focus items.');else if(items.filter(x=>x.top&&!x.done).length>=TOPCAP)toast('Max 3 top priority items.');else i.top=true}else if(!f.top.checked)i.top=false;
  i.title=f.title.value.trim()||i.title;i.due=f.due.type==='month'?(!f.due.value?'':(i.due||'').slice(0,7)===f.due.value?i.due:f.due.value+'-01'):f.due.value;if(f.notes.value.trim()||i.notes)i.notes=f.notes.value;i.tags=[...f.querySelectorAll('[name=tag]:checked')].map(c=>c.value);save();render()});
 // export/import

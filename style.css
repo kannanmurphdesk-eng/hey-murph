@@ -349,3 +349,5 @@ dialog.poed label{display:flex;flex-direction:column;gap:4px;margin:6px 0}dialog
 .ftop{display:block}.ftop .t{font-weight:600;font-size:16px}.ftd{font-size:13px;opacity:.75;padding:5px 0 0 14px;position:relative;cursor:pointer}.ftd::before{content:'•';position:absolute;left:2px}
 
 .elk{max-height:220px;overflow:auto}.elk label{font-size:13px;align-items:flex-start}
+
+.fpo{margin-left:8px;font-size:11px;font-weight:600;padding:2px 7px;border-radius:9px;background:rgba(95,123,255,.18);color:#a9c1ff;cursor:pointer;vertical-align:middle}
