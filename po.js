@@ -1,6 +1,6 @@
 'use strict';
 // ===== PO funnel information board (not a to-do list). Fields live on the item (flat) and sync via updatedAt.
-const POF=[['pot','POT id'],['cost','Cost to us (₹ L)'],['quoted','Quoted (₹ L)'],['cm','CM (₹ L)'],['prob','Probability %'],['due','Expected date'],['principal','Principal'],['model','Model no.'],['nxt','Next action']];
+const POF=[['pot','POT id'],['cost','Cost to us (₹ L)'],['quoted','Quoted (₹ L)'],['cm','CM (₹ L)'],['prob','Probability %'],['due','Expected date'],['principal','Principal'],['model','Model no.'],['eu','End user'],['nxt','Next action']];
 const POSW=[['swS','S · Strength'],['swW','W · Weakness'],['swO','O · Opportunity'],['swT','T · Threat']];
 let poQ='',poAll=false,poInact=false,poEd=null;
 const poAct=i=>i.active!==false;

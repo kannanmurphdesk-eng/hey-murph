@@ -6,22 +6,22 @@ function renderHome(){const el=$('#home'),t=dAgo(0),mon=t.slice(0,7);
  <div class="hcard hm" style="--c:#ff7ad9"><div class="hmh"><b>📓 Journal</b><span id="hjMeta"></span></div>
   <form id="hjForm"><textarea id="hjText" rows="3" placeholder="Quick capture a thought… (auto-stamped)"></textarea>
   <div class="hmrow"><button class="primary" id="hjSave">Save</button><button type="button" class="hmgo" data-go="journal">Open Journal ›</button></div></form></div>
- <div class="hcard hm" style="--c:#5F7BFF"><div class="hmh"><b>✓ To do</b><span id="htMeta"></span></div><ul id="htList"></ul>
-  <button type="button" class="hmgo full" data-go="tasks">Open Tasks ›</button></div>
+ <div class="hcard hm" style="--c:#5F7BFF"><div class="hmh"><b>◎ Focus</b><span id="htMeta"></span></div><ul id="htList"></ul>
+  <button type="button" class="hmgo full" data-go="focus">Open Focus ›</button></div>
  <div class="hcard hm" id="hhCard" style="--c:#FFB83F"><div class="hmh"><b>🔥 Habits &amp; Travel</b><span id="hhMeta"></span></div><div id="hhTrav"></div><div id="hh7"></div><div class="hmticks" id="hhTicks"></div>
   <button type="button" class="hmgo full" data-go="habits">Open Habits &amp; Travel ›</button></div>`;
   $('#hjForm').onsubmit=e=>{e.preventDefault();const x=$('#hjText'),v=x.value.trim();if(!v)return;J.push(jnorm({text:v,type:''}));jsave();x.value='';toast('Recorded '+jtime(Date.now()));render()};
   el.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)hmGo(g.dataset.go==='tasks'?tview:g.dataset.go==='habits'?hview:g.dataset.go)});
-  $('#htList').onclick=e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.closest('li').dataset.id;if(a.dataset.a==='done'){const it=items.find(x=>x.id===id);toggleDone(id);if(it&&it.done)toast('Done ✓ '+it.title.slice(0,40))}else openEdit(id)};
+  $('#htList').onclick=e=>{const a=e.target.closest('[data-a]');if(!a)return;if(a.dataset.a==='po'){openPO(a.dataset.pid);return}openEdit(a.dataset.tid||a.closest('li').dataset.id)};
   $('#hh7').onclick=e=>{const b=e.target.closest('[data-c7]');if(b&&typeof cal7Go==='function')cal7Go(b.dataset.c7)};
   $('#hhTicks').onclick=e=>{const b=e.target.closest('[data-hmt]');if(b&&htick(+b.dataset.hmt,dAgo(0))){hsave();renderHome()}}}
  // journal
  const rec=J.filter(e=>jstage(e)==='inbox').length,pend=J.filter(e=>jstage(e)==='processed').length;
  $('#hjMeta').innerHTML=`<em class="${rec?'hmn':''}">${rec}</em> unprocessed${pend?` · ${pend} to execute`:''}`;
- // tasks
- const L=openIn('todo').sort(todoSort),od=L.filter(isOver).length;
- $('#htMeta').innerHTML=`${L.length} open${od?` · <span class="od">${od} overdue</span>`:''}`;
- $('#htList').innerHTML=L.slice(0,3).map(todoRow).join('')||'<li class="empty">Nothing to do.</li>';
+ // focus topics
+ const L=openIn('focus').sort((a,b)=>b.top-a.top);
+ $('#htMeta').textContent=`${L.length}/${CAP} topics`;
+ $('#htList').innerHTML=L.map(topicRow).join('')||'<li class="empty">No topics yet.</li>';
  // habits & travel
  const di=dlHi(),dh=di===null?null:H.habits[di],ml=new Date(mon+'-01T00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'});
  $('#hhMeta').textContent=ml;

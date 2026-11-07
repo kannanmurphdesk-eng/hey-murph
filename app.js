@@ -64,11 +64,19 @@ function render(){
  ${i.done?(typeof hasInsight==='function'?`<button class="mv ins${hasInsight(i.id)?' has':''}" data-a="insight">${hasInsight(i.id)?'💡':'💡 Insight'}</button>`:''):`<select class="mv" data-mv aria-label="Move to"><option value="">Move ▾</option>${Object.keys(LN).filter(l=>l!==i.list).map(l=>`<option value="${l}">→ ${LN[l]}</option>`).join('')}</select>`}</li>`).join('')||'<li class="empty">Nothing here. Clear skies.</li>';
 }
 const tagChip=t=>t?`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`:'';
-function renderTopics(){const L=openIn('focus').sort((a,b)=>b.top-a.top);
- $('#list').innerHTML=L.map(i=>{const td=openIn('todo').filter(x=>x.topic===i.id).sort(todoSort);
-  return `<li class="ftop" data-id="${i.id}"><div class="body" data-a="edit"><div class="t">${esc(i.title)}${i.po&&items.find(p=>p.id===i.po)?`<span class="fpo" data-a="po" data-pid="${i.po}">PO ›</span>`:""}</div>${(t=>t?`<div class="m">${tagChip(t)}</div>`:"")((i.tags||[]).find(x=>FTAGS.includes(x)))}</div>${td.map(x=>`<div class="ftd" data-a="edit" data-tid="${x.id}">${esc(x.title)}</div>`).join('')}</li>`}).join('')||'<li class="empty">No topics yet.</li>'}
-function todoRow(i){const tp=i.topic&&items.find(x=>x.id===i.topic);
- return `<li class="tdo" data-id="${i.id}" style="--stripe:${i.important&&i.urgent?'#ff6b5e':i.important?'#ffb547':i.urgent?'#ff4fb4':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.important?'<span class="mki">Important</span>':''}${i.urgent?'<span class="mku">Urgent</span>':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span> `:''}${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}</div></div></li>`}
+function renderTopics(){$('#list').innerHTML=openIn('focus').sort((a,b)=>b.top-a.top).map(topicRow).join('')||'<li class="empty">No topics yet.</li>'}
+// menu-card rows: customer, principal (+ model if known), end user
+const mcKnown=v=>v&&!/^(tbd|\?)$/i.test(String(v).trim())?String(v).trim():'';
+const mcCust=i=>(i.title||'').split(' - ')[0].trim()||i.customer||'';
+const mcEU=t=>{const p=(t||'').split(' - ');return p.length>2?p[p.length-1].trim():''};
+function mcPO(i){const f=i.list==='focus'?i:i.topic&&items.find(x=>x.id===i.topic);return f&&f.po&&items.find(p=>p.id===f.po)||null}
+function mcEndUser(i){if(i.eu)return i.eu;const po=mcPO(i);if(po&&po.eu)return po.eu;if(i.list==='todo')return mcEU(i.title);const t=openIn('todo').find(x=>x.topic===i.id);return t&&mcEU(t.title)||po&&mcEU(po.title)||''}
+function mcLine(i){const po=mcPO(i),pr=po&&mcKnown(po.principal),md=po&&mcKnown(String(po.model||'').replace(/\s*\([^)]*\)/g,'').trim()),eu=mcEndUser(i);
+ return {pr:[pr,md].filter(Boolean).join(' · '),eu}}
+function topicRow(i){const {pr,eu}=mcLine(i),n=openIn('todo').filter(x=>x.topic===i.id).length,tg=(i.tags||[]).find(x=>FTAGS.includes(x));
+  return `<li class="ftop mc" data-id="${i.id}"><div class="body" data-a="edit"><div class="mcr"><b>${esc(mcCust(i))}</b><i></i><span>${pr?esc(pr):'<em>Principal ?</em>'}</span></div><div class="mcs">${eu?'👤 '+esc(eu):''}${tg?' '+tagChip(tg):''}${n?` <small>☑ ${n}</small>`:''}${i.po&&items.find(p=>p.id===i.po)?`<span class="fpo" data-a="po" data-pid="${i.po}">PO ›</span>`:''}</div></div></li>`}
+function todoRow(i){const {pr,eu}=mcLine(i),p=(i.title||'').split(' - '),act=p.length>2?p.slice(1,-1).join(' - '):p.slice(1).join(' - ');
+ return `<li class="tdo mc" data-id="${i.id}" style="--stripe:${i.important&&i.urgent?'#ff6b5e':i.important?'#ffb547':i.urgent?'#ff4fb4':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button><div class="body" data-a="edit"><div class="mcr"><b>${esc(mcCust(i))}</b>${pr?`<i></i><span>${esc(pr)}</span>`:''}</div>${act?`<div class="mca">${esc(act)}</div>`:''}<div class="mcs">${eu?'👤 '+esc(eu)+' ':''}${i.important?'<span class="mki">Important</span>':''}${i.urgent?'<span class="mku">Urgent</span>':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span>`:''}</div></div></li>`}
 function renderTodo(){const L=openIn('todo').sort(todoSort);$('#list').innerHTML=L.map(todoRow).join('')||'<li class="empty">Nothing to do. Clear skies.</li>'}
 $('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.dataset.tid||a.closest('li').dataset.id;
  if(a.dataset.a==='po'){openPO(a.dataset.pid);return}if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else if(a.dataset.a==='insight')openInsight(id);else openEdit(id)});
