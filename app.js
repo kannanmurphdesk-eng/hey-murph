@@ -68,7 +68,7 @@ function renderTopics(){const L=openIn('focus').sort((a,b)=>b.top-a.top);
  $('#list').innerHTML=L.map(i=>{const td=openIn('todo').filter(x=>x.topic===i.id).sort(todoSort);
   return `<li class="ftop" data-id="${i.id}"><div class="body" data-a="edit"><div class="t">${esc(i.title)}${i.po&&items.find(p=>p.id===i.po)?`<span class="fpo" data-a="po" data-pid="${i.po}">PO ›</span>`:""}</div>${(t=>t?`<div class="m">${tagChip(t)}</div>`:"")((i.tags||[]).find(x=>FTAGS.includes(x)))}</div>${td.map(x=>`<div class="ftd" data-a="edit" data-tid="${x.id}">${esc(x.title)}</div>`).join('')}</li>`}).join('')||'<li class="empty">No topics yet.</li>'}
 function todoRow(i){const tp=i.topic&&items.find(x=>x.id===i.topic);
- return `<li class="tdo" data-id="${i.id}" style="--stripe:${i.important&&i.urgent?'#ff6b5e':i.important?'#ffb547':i.urgent?'#ff4fb4':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.important?'<span class="mki">Important</span>':''}${i.urgent?'<span class="mku">Urgent</span>':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span> `:''}${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}${tp?`<span class="ftp">◎ ${esc(tp.title)}</span>`:''}</div></div></li>`}
+ return `<li class="tdo" data-id="${i.id}" style="--stripe:${i.important&&i.urgent?'#ff6b5e':i.important?'#ffb547':i.urgent?'#ff4fb4':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.important?'<span class="mki">Important</span>':''}${i.urgent?'<span class="mku">Urgent</span>':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span> `:''}${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}</div></div></li>`}
 function renderTodo(){const L=openIn('todo').sort(todoSort);$('#list').innerHTML=L.map(todoRow).join('')||'<li class="empty">Nothing to do. Clear skies.</li>'}
 $('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.dataset.tid||a.closest('li').dataset.id;
  if(a.dataset.a==='po'){openPO(a.dataset.pid);return}if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else if(a.dataset.a==='insight')openInsight(id);else openEdit(id)});
@@ -132,7 +132,7 @@ function editMode(f,l){const fo=l==='focus';$('#eTodo').hidden=l!=='todo';$('#ta
  f.querySelectorAll('[name=tag]').forEach(c=>{c.closest('label').hidden=l==='focus'&&!FTAGS.includes(c.value)});
 }
 function dueMode(f,po){const v=f.due.value;if(po===(f.due.type==='month'))return;f.due.type=po?'month':'date';f.due.value=po?v.slice(0,7):v?v+'-01':'';$('#eDueL').textContent=po?'Expected close month':'Due'}
-function openEdit(id){editing=items.find(x=>x.id===id);const f=$('#editForm');f.title.value=editing.title;f.due.type='date';$('#eDueL').textContent='Due';f.due.value=editing.due;dueMode(f,editing.list==='po');f.top.checked=editing.top;f.notes.value=editing.notes||'';
+function editItem(id){editing=items.find(x=>x.id===id);const f=$('#editForm');f.title.value=editing.title;f.due.type='date';$('#eDueL').textContent='Due';f.due.value=editing.due;dueMode(f,editing.list==='po');f.top.checked=editing.top;f.notes.value=editing.notes||'';
  f.list.value=editing.list;f.cm.value=editing.cm||'';f.month.value=editing.month||'';$('#ePo').hidden=editing.list!=='po';esubs=JSON.parse(JSON.stringify(editing.subs||[]));drawSubs();$('#eSubIn').value='';
  f.querySelectorAll('[name=tag]').forEach(c=>c.checked=editing.tags.includes(c.value));f.imp.checked=!!editing.important;f.urg.checked=!!editing.urgent;editMode(f,editing.list);$('#edit').showModal()}
 $('#edit').addEventListener('close',()=>{const r=$('#edit').returnValue,f=$('#editForm'),i=editing;if(!i)return;editing=null;
@@ -183,3 +183,17 @@ greet();showQuote();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 render();
+
+// v71: read-only view for Focus topics and To do items (like PO); Edit opens the edit screen.
+function openEdit(id){const i=items.find(x=>x.id===id);if(i&&(i.list==='focus'||i.list==='todo'))openView(id);else editItem(id)}
+function openView(id){const i=items.find(x=>x.id===id);if(!i)return;let d=$('#tView');if(!d){d=document.createElement('dialog');d.id='tView';d.className='poed';document.body.appendChild(d);
+  d.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(!b)return;const k=b.dataset.v,x=b.dataset.x;if(k==='close')d.close();else if(k==='edit'){d.close();editItem(x)}else if(k==='done'){d.close();toggleDone(x)}else if(k==='po'){d.close();openPO(x)}else if(k==='open')openView(x)})}
+ const row=(n,v)=>`<div class="pdr"><small>${n}</small><div>${v||'<span class="pbl">—</span>'}</div></div>`;let h=`<div class="pdh">${esc(i.title)}</div>`;
+ if(i.list==='focus'){const t=(i.tags||[]).find(x=>FTAGS.includes(x)),po=i.po&&items.find(p=>p.id===i.po),td=openIn('todo').filter(x=>x.topic===i.id).sort(todoSort);
+  h+=`<div class="pdg">${row('Tag',t?tagChip(t):'')}${row('PO card',po?`<a class="fpo" data-v="po" data-x="${po.id}">${esc(po.title)} ›</a>`:'')}</div>
+  <div class="jlab">To do</div>${td.map(x=>`<div class="ftd" data-v="open" data-x="${x.id}">${esc(x.title)}</div>`).join('')||'<div class="pbl">None linked</div>'}`}
+ else{const tp=i.topic&&items.find(x=>x.id===i.topic&&x.list==='focus'),ss=subsOf(i);
+  h+=`<div class="pdg">${row('Important',i.important?'<span class="mki">Important</span>':'')}${row('Urgent',i.urgent?'<span class="mku">Urgent</span>':'')}${row('Due',i.due?`<span class="${isOver(i)?'od':''}">${esc(i.due)}${isOver(i)?' · overdue':''}</span>`:'')}${row('Focus topic',tp?`<a class="fpo" data-v="open" data-x="${tp.id}">${esc(tp.title)}</a>`:'')}</div>
+  ${ss.length?`<div class="jlab">Sub-tasks</div>${ss.map(x=>`<div class="ftd">${x.done?'☑':'☐'} ${esc(x.t)}</div>`).join('')}`:''}${(i.notes||'').trim()?`<div class="jlab">Notes</div><div class="pdn">${esc(i.notes)}</div>`:''}`}
+ h+=`<div class="btns"><button type="button" data-v="close">Close</button>${i.list==='todo'?`<button type="button" data-v="done" data-x="${i.id}">${i.done?'Undo done':'Done'}</button>`:''}<button type="button" class="primary" data-v="edit" data-x="${i.id}">Edit</button></div>`;
+ d.innerHTML=h;if(!d.open)d.showModal()}
