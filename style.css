@@ -336,3 +336,5 @@ select.mv{max-width:120px}
 .pogr{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;font-size:.85em}.pogr small{display:block;font-size:.72em;opacity:.6}.ponx{margin-top:6px;font-size:.85em;opacity:.9}
 dialog.poed label{display:flex;flex-direction:column;gap:4px;margin:6px 0}dialog.poed label.row{flex-direction:row;align-items:center}
 .poopt label{display:inline-flex;align-items:center;gap:4px}.poopt input{width:16px;height:16px;margin:0;flex:none}
+
+.poln{font-size:.82em;opacity:.75}.pdot{background:#ff5e5e;color:#fff;border-radius:9px;padding:0 6px;font-size:.7em;font-weight:700;vertical-align:middle}.pdh{font-weight:700;font-size:1.05em}.pdg{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:8px 0}.pdr small{display:block;font-size:.72em;opacity:.6}.pdn{white-space:pre-wrap;font-size:.88em;opacity:.9}
