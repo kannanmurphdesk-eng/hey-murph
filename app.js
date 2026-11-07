@@ -2,13 +2,14 @@
 const TAGS=['damage control','preventive damage control','overdue','quick wins','delegation','necessary task'];
 const TC={'damage control':'#ff6b5e','preventive damage control':'#ffb547','overdue':'#ff4fb4','quick wins':'#3ddc84','delegation':'#2fd3e0','necessary task':'#a66bff'};
 const CAP=10,TOPCAP=3,KEY='heymurph.v1';
-const LN={focus:'Focus',next:'Next Action',radar:'Under Radar',cold:'Cold Storage',po:'PO funnel',del:'Delivery cases',pay:'Payment pending'},CAPPED=['focus','next','radar'],FLOWV=['po','del','pay'];
+const FTAGS=['damage control','preventive damage control','quick wins','necessary task'];
+const LN={focus:'Focus',todo:'To do',cold:'Cold Storage',po:'PO funnel',del:'Delivery cases',pay:'Payment pending'},CAPPED=['focus'],FLOWV=['po','del','pay'];
 const fmon=m=>{if(!m)return'';const[y,mo]=m.split('-');return new Date(+y,+mo-1,1).toLocaleString('en-IN',{month:'short',year:'numeric'})};
 const dmon=d=>d?new Date(d.slice(0,7)+'-01T00:00').toLocaleString('en-US',{month:'short',year:'numeric'}):'',fcm=v=>v?'₹'+(+v).toLocaleString('en-IN',{maximumFractionDigits:2})+' L':'';
 let fview='po';
 let items=load(),view='home',tview='focus',hview='habits';
 const SEG=v=>v==='home'?'home':v==='customers'?'customers':v==='journal'?'journal':(v==='habits'||v==='travel')?'habits':'tasks';
-const TSEG=['focus','next','radar','cold','po','del','pay','done'],TSL={focus:'Focus',next:'Next',radar:'Radar',cold:'Cold',po:'PO',del:'Delivery',pay:'Payment',done:'Done'};
+const TSEG=['focus','todo','cold','po','del','pay','done'],TSL={focus:'Focus',todo:'To do',cold:'Cold',po:'PO',del:'Delivery',pay:'Payment',done:'Done'};
 const $=s=>document.querySelector(s);
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
 function save(){localStorage.setItem(KEY,JSON.stringify(items))}
@@ -19,13 +20,25 @@ const isOver=i=>!i.done&&i.due&&i.due<today();
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2800)}
 function canIn(l){if(CAPPED.includes(l)&&openIn(l).length>=CAP){toast(LN[l]+' is full (10). Move or finish something first.');return false}return true}
 const canFocus=()=>canIn('focus');
-function mk(title,list,o={}){return{id:uid(),title:title.trim(),list,tags:(o.tags||[]).filter(t=>TAGS.includes(t)),due:o.due||'',customer:(o.customer||'').trim(),top:!!o.top&&list==='focus',done:!!o.done,created:Date.now(),doneAt:o.done?Date.now():null,...(Array.isArray(o.subs)&&o.subs.length?{subs:o.subs}:{}),...(o.cm?{cm:String(o.cm)}:{}),...(o.month?{month:String(o.month)}:{})}}
+const subsOf=o=>{const a=Array.isArray(o.subs)?o.subs:Array.isArray(o.subtasks)?o.subtasks:[];return a.map(s=>typeof s==='string'?{t:s,done:false}:{t:String(s.t||s.title||''),done:!!s.done}).filter(s=>s.t)};
+function mk(title,list,o={}){return{id:uid(),title:title.trim(),list,tags:(o.tags||[]).filter(t=>TAGS.includes(t)),due:o.due||'',customer:(o.customer||'').trim(),top:!!o.top&&list==='focus',done:!!o.done,created:Date.now(),doneAt:o.done?Date.now():null,...(subsOf(o).length?{subs:subsOf(o)}:{}),...(o.important?{important:true}:{}),...(o.urgent?{urgent:true}:{}),...(o.topic?{topic:String(o.topic)}:{}),...(o.cm?{cm:String(o.cm)}:{}),...(o.month?{month:String(o.month)}:{})}}
 function add(title,list){if(!title.trim())return false;if(!canIn(list))return false;items.push(mk(title,list));save();render();return true}
 function move(id,to){const i=items.find(x=>x.id===id);if(!to||to===i.list||!canIn(to))return render();i.list=to;if(to!=='focus')i.top=false;save();render()}
 function toggleDone(id){const i=items.find(x=>x.id===id);if(i.done&&!canIn(i.list))return;i.done=!i.done;i.doneAt=i.done?Date.now():null;if(i.done)i.top=false;save();render()}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+// v65: Under radar and Next action are retired; anything still there (old data or ops) goes to Cold storage.
+function legacyMove(){let c=0;for(const i of items)if(i.list==='next'||i.list==='radar'){i.list='cold';i.top=false;c++}if(c)save()}
+// v65 one-time: open Focus tasks become topics (no tag) and their action goes to To do. Deterministic ids so it is safe to run on more than one device.
+const V65T={mvor0n2bdv159:'NIT Calicut – PARIO',mvmrzfi9ps583:'IIT Dharwad – TEMPOS',mvm34e7ado6yq:'ICAR-CICR – Atmos 41',mve8wcaxz4zdc:'IIT Palakkad – HYPROP 3',mvvpxntccgcbq:'BITS Pilani – DAQ Strain',mvojuzk5ijutn:'ideaForge – Requirements',mvclmoz0umm3o:'NCESS – HYPROP',mv80tj7e9636n:'IIT Palakkad – Ankesh quote',mvk4r2xk74jbn:'JTEKT – Appmeas Torque',mvktkj5bmf2ru:'SRM – DT80'};
+function v65mig(){let c=0;
+ for(const i of items.filter(x=>x.list==='focus'&&!x.done&&!x.v65&&V65T[x.id])){const tid='td_'+i.id;
+  if(!items.some(x=>x.id===tid)){const t=mk(i.title,'todo',{due:i.due,subs:i.subs,important:i.tags.includes('damage control'),urgent:i.tags.includes('damage control'),topic:i.id,customer:i.customer});t.id=tid;if(i.notes)t.notes=i.notes;if(i.jid)t.jid=i.jid;items.push(t)}
+  const p=i.title.split(' - ');i.title=V65T[i.id]||(p.length>1?p[0]+' – '+p[1]:i.title);i.tags=[];i.due='';delete i.subs;i.top=false;i.v65=1;c++}
+ if(c)save()}
+const todoRank=i=>(isOver(i)?0:10)+(i.important&&i.urgent?0:i.important?1:i.urgent?2:3);
+const todoSort=(a,b)=>todoRank(a)-todoRank(b)||(a.due||'9999').localeCompare(b.due||'9999')||a.created-b.created;
 function render(){
- if(typeof fmigrate==='function')fmigrate();
+ legacyMove();v65mig();if(typeof fmigrate==='function')fmigrate();
  if(view==='flow')view=fview;const flv=FLOWV.includes(view);if(flv)fview=view;
  const sg=SEG(view);if(sg==='tasks')tview=view;else if(sg==='habits')hview=view;
  const hv=sg!=='tasks';$('#home').hidden=view!=='home';if(view==='home'&&typeof renderHome==='function')renderHome();$('#habits').hidden=view!=='habits';$('#travel').hidden=view!=='travel';if(view==='travel'&&typeof renderTravel==='function')renderTravel();$('#journal').hidden=view!=='journal';$('#flow').hidden=!flv;if(flv&&typeof renderFlow==='function')renderFlow();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
@@ -37,14 +50,22 @@ function render(){
  let L=hv?[]:view==='done'?items.filter(i=>i.done):openIn(view);
  if(tf)L=L.filter(i=>i.tags.includes(tf));
  if(view==='done')L.sort((a,b)=>b.doneAt-a.doneAt);else if(view==='po')L.sort((a,b)=>(a.due||'9999-99-99').localeCompare(b.due||'9999-99-99')||((+b.cm||0)-(+a.cm||0)));else L.sort((a,b)=>(b.top-a.top));
- const f=openIn('focus').length;$('#count').textContent=view==='focus'?`${f}/${CAP} open · ${openIn('focus').filter(i=>i.top).length}/${TOPCAP} top`:fv?`${openIn(view).length}/${CAP} open`:flv?`${LN[view]} · ${L.length} open`:`${L.length} item(s)`;
+ const f=openIn('focus').length;$('#count').textContent=view==='focus'?`${f}/${CAP} topics`:view==='todo'?`${L.length} to do${L.filter(isOver).length?' · '+L.filter(isOver).length+' overdue':''}`:fv?`${openIn(view).length}/${CAP} open`:flv?`${LN[view]} · ${L.length} open`:`${L.length} item(s)`;
  $('#quote').style.display=view==='home'?'':'none';
- $('#add').style.display=(fv||flv||view==='cold')?'flex':'none';$('#addInput').placeholder='Quick add to '+(LN[view]||'list')+'…';
- $('#filters').hidden=hv||view==='po';if(view==='po'&&typeof renderPO==='function'){renderPO();return}
+ $('#add').style.display=(fv||flv||view==='cold'||view==='todo')?'flex':'none';$('#addInput').placeholder='Quick add to '+(LN[view]||'list')+'…';
+ $('#filters').hidden=hv||['po','focus','todo'].includes(view);if(view==='po'&&typeof renderPO==='function'){renderPO();return}
+ if(view==='focus'){renderTopics();return}if(view==='todo'){renderTodo();return}
  let pm=null;$('#list').innerHTML=L.map(i=>`${view==='po'&&(i.due||'').slice(0,7)!==pm?(pm=(i.due||'').slice(0,7),`<li class="mhd">${pm?dmon(i.due):'No date'} · ₹${+L.filter(x=>(x.due||'').slice(0,7)===pm).reduce((a,x)=>a+(+x.cm||0),0).toLocaleString('en-IN',{maximumFractionDigits:2})}L</li>`):''}<li class="${i.top?'top':''}" data-id="${i.id}" style="--stripe:${i.tags[0]?TC[i.tags[0]]:i.top?'#f5c96a':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button>
  <div class="body" data-a="edit"><div class="t">${esc(i.title)}${i.done&&typeof hasInsight==='function'&&hasInsight(i.id)?' <span class="insm" title="Has insight">💡</span>':''}</div><div class="m">${i.tags.map(t=>`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`).join('')}${i.list==='po'&&(i.cm||i.month)?`<span class="fpo">${[fcm(i.cm),fmon(i.month)].filter(Boolean).join(' · ')}</span> `:''}${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}${i.notes?'📝 ':''}${i.jid?'📓 ':''}${i.list==='po'?(i.due?`<span class="fpo">Expected: ${dmon(i.due)}</span>`:''):i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span>`:''}${view==='done'?' · '+(LN[i.list]||''):''}</div></div>
  ${i.done?(typeof hasInsight==='function'?`<button class="mv ins${hasInsight(i.id)?' has':''}" data-a="insight">${hasInsight(i.id)?'💡':'💡 Insight'}</button>`:''):`<select class="mv" data-mv aria-label="Move to"><option value="">Move ▾</option>${Object.keys(LN).filter(l=>l!==i.list).map(l=>`<option value="${l}">→ ${LN[l]}</option>`).join('')}</select>`}</li>`).join('')||'<li class="empty">Nothing here. Clear skies.</li>';
 }
+const tagChip=t=>t?`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`:'';
+function renderTopics(){const L=openIn('focus').sort((a,b)=>b.top-a.top);
+ $('#list').innerHTML=L.map((i,k)=>{const n=openIn('todo').filter(x=>x.topic===i.id).length;const t=(i.tags||[]).find(x=>FTAGS.includes(x));
+  return `<li class="ftop" data-id="${i.id}" style="--stripe:${t?TC[t]:'#5F7BFF'}"><div class="body" data-a="edit"><div class="t"><span class="fnum">${k+1}</span>${esc(i.title)}</div>${t||n?`<div class="m">${tagChip(t)}${n?`<span class="fcnt">${n} to do</span>`:''}</div>`:''}</div></li>`}).join('')||'<li class="empty">No topics yet. Add up to 10.</li>'}
+function todoRow(i){const tp=i.topic&&items.find(x=>x.id===i.topic);
+ return `<li class="tdo" data-id="${i.id}" style="--stripe:${i.important&&i.urgent?'#ff6b5e':i.important?'#ffb547':i.urgent?'#ff4fb4':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.important?'<span class="mki">Important</span>':''}${i.urgent?'<span class="mku">Urgent</span>':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span> `:''}${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}${tp?`<span class="ftp">◎ ${esc(tp.title)}</span>`:''}</div></div></li>`}
+function renderTodo(){const L=openIn('todo').sort(todoSort);$('#list').innerHTML=L.map(todoRow).join('')||'<li class="empty">Nothing to do. Clear skies.</li>'}
 $('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.closest('li').dataset.id;
  if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else if(a.dataset.a==='insight')openInsight(id);else openEdit(id)});
 $('#list').addEventListener('change',e=>{const s=e.target.closest('[data-mv]');if(s)move(s.closest('li').dataset.id,s.value)});
@@ -90,22 +111,26 @@ let esubs=[];
 function drawSubs(){$('#eSubs').innerHTML=esubs.map((s,k)=>`<div class="fsub"><input type="checkbox" data-si="${k}"${s.done?' checked':''}><span class="${s.done?'dn':''}">${esc(s.t)}</span><button type="button" data-sd="${k}" aria-label="Delete">✕</button></div>`).join('')}
 (function(){const f=$('#editForm'),n=f.notes.closest('label');const po=document.createElement('div');po.id='ePo';po.className='fpog';po.innerHTML='<label>Expected CM (₹ lakh)<input name="cm" type="number" step="0.01" min="0" inputmode="decimal" placeholder="e.g. 2.5"></label><label>Expected month<input name="month" type="month"></label>';
  const sb=document.createElement('div');sb.innerHTML='<div class="fsl">Sub-tasks</div><div id="eSubs"></div><div class="fsadd"><input id="eSubIn" placeholder="Add sub-task…"><button type="button" id="eSubBtn">+</button></div>';
+ const td=document.createElement('div');td.id='eTodo';td.className='etd';td.innerHTML='<label class="row"><input type="checkbox" name="imp"> Important</label><label class="row"><input type="checkbox" name="urg"> Urgent</label><label>Topic<select name="topic"></select></label>';
  const ls=document.createElement('label');ls.innerHTML='List<select name="list">'+Object.keys(LN).map(l=>`<option value="${l}">${LN[l]}</option>`).join('')+'</select>';
- f.title.closest('label').after(ls);ls.after(po);n.before(sb);
+ f.title.closest('label').after(ls);ls.after(po);po.after(td);n.before(sb);
  const addS=()=>{const v=$('#eSubIn').value.trim();if(!v)return;esubs.push({t:v,done:false});$('#eSubIn').value='';drawSubs()};
  $('#eSubBtn').onclick=addS;$('#eSubIn').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addS()}};
  $('#eSubs').onclick=e=>{const d=e.target.closest('[data-sd]');if(d){esubs.splice(+d.dataset.sd,1);drawSubs()}};
  $('#eSubs').onchange=e=>{const c=e.target.closest('[data-si]');if(c){esubs[+c.dataset.si].done=c.checked;drawSubs()}};
- f.list.onchange=()=>{po.hidden=f.list.value!=='po';dueMode(f,f.list.value==='po')}})();
+ f.list.onchange=()=>{po.hidden=f.list.value!=='po';dueMode(f,f.list.value==='po');editMode(f,f.list.value)}})();
+function editMode(f,l){$('#eTodo').hidden=l!=='todo';$('#tagBox').hidden=l==='todo';f.top.closest('label').hidden=l!=='focus';
+ f.querySelectorAll('[name=tag]').forEach(c=>{c.closest('label').hidden=l==='focus'&&!FTAGS.includes(c.value)});
+ const cur=editing&&editing.topic||'';f.topic.innerHTML='<option value="">— none —</option>'+openIn('focus').map(t=>`<option value="${t.id}"${t.id===cur?' selected':''}>${esc(t.title)}</option>`).join('')}
 function dueMode(f,po){const v=f.due.value;if(po===(f.due.type==='month'))return;f.due.type=po?'month':'date';f.due.value=po?v.slice(0,7):v?v+'-01':'';$('#eDueL').textContent=po?'Expected close month':'Due'}
 function openEdit(id){editing=items.find(x=>x.id===id);const f=$('#editForm');f.title.value=editing.title;f.due.type='date';$('#eDueL').textContent='Due';f.due.value=editing.due;dueMode(f,editing.list==='po');f.top.checked=editing.top;f.notes.value=editing.notes||'';
  f.list.value=editing.list;f.cm.value=editing.cm||'';f.month.value=editing.month||'';$('#ePo').hidden=editing.list!=='po';esubs=JSON.parse(JSON.stringify(editing.subs||[]));drawSubs();$('#eSubIn').value='';
- f.querySelectorAll('[name=tag]').forEach(c=>c.checked=editing.tags.includes(c.value));$('#edit').showModal()}
+ f.querySelectorAll('[name=tag]').forEach(c=>c.checked=editing.tags.includes(c.value));f.imp.checked=!!editing.important;f.urg.checked=!!editing.urgent;editMode(f,editing.list);$('#edit').showModal()}
 $('#edit').addEventListener('close',()=>{const r=$('#edit').returnValue,f=$('#editForm'),i=editing;if(!i)return;editing=null;
  if(r==='delete'){if(confirm('Delete "'+i.title+'"?')){items=items.filter(x=>x!==i);save();render()}return}
  if(r!=='save')return;
  if(f.list.value!==i.list){if(!i.done&&!canIn(f.list.value))return;i.list=f.list.value;if(i.list!=='focus')i.top=false}
- if(esubs.length||i.subs)i.subs=esubs;if(i.list==='po'){if(f.cm.value||i.cm)i.cm=f.cm.value;if(f.month.value||i.month)i.month=f.month.value}
+ if(esubs.length||i.subs)i.subs=esubs;if(i.list==='todo'){i.important=f.imp.checked;i.urgent=f.urg.checked;i.topic=f.topic.value}if(i.list==='po'){if(f.cm.value||i.cm)i.cm=f.cm.value;if(f.month.value||i.month)i.month=f.month.value}
  if(f.top.checked&&!i.top){if(i.list!=='focus'||i.done)toast('Top priority only applies to open Focus items.');else if(items.filter(x=>x.top&&!x.done).length>=TOPCAP)toast('Max 3 top priority items.');else i.top=true}else if(!f.top.checked)i.top=false;
  i.title=f.title.value.trim()||i.title;i.due=f.due.type==='month'?(!f.due.value?'':(i.due||'').slice(0,7)===f.due.value?i.due:f.due.value+'-01'):f.due.value;if(f.notes.value.trim()||i.notes)i.notes=f.notes.value;i.tags=[...f.querySelectorAll('[name=tag]:checked')].map(c=>c.value);save();render()});
 // export/import

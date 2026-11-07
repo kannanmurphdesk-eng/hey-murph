@@ -21,7 +21,7 @@ function rvNext(){RV.i++;while(RV.i<RV.q.length&&!J.find(e=>e.id===RV.q[RV.i]))R
 function rvExec(e,dest){if(dest!=='notes'){if(!canIn(dest))return false;const t=mk(jtitle(e),dest,{});t.notes=e.text.replace(/\*\*|==/g,'');t.jid=e.id;items.push(t);save();e.exec={dest,at:Date.now(),taskId:t.id}}
  else e.exec={dest,at:Date.now()};if(e.stage!=='processed'){e.stage='processed';e.processedAt=Date.now()}jsave();RV.stats.executed++;toast('Sent to '+DEST[dest]);return true}
 function rvCommit(e){const t=$('#rvText'),es=$('#rvEss');if(!e||!t)return;e.text=t.value.trim()||e.text;e.essence=es.value.trim();jsave()}
-const execBtns=id=>`<div class="jrow rvx">${Object.keys(DEST).map(d=>`<button data-r="x-${d}" data-id="${id}" class="d-${d}">→ ${DEST[d]}</button>`).join('')}</div>`;
+const execBtns=id=>`<div class="jrow rvx">${Object.keys(DEST).filter(d=>d!=='next'&&d!=='radar').map(d=>`<button data-r="x-${d}" data-id="${id}" class="d-${d}">→ ${DEST[d]}</button>`).join('')}</div>`;
 function rvDraw(){const e=rvCur(),N=RV.q.length,b=$('#rvBody');let h=`<div class="rvtop"><div class="rvh">Journal review</div><button data-r="close" class="x" aria-label="Close">✕</button></div>`;
  if(e){const pos=RV.i+1;h+=`<div class="rvprog"><span>Record ${pos} of ${N}</span><div class="rvbar"><i style="width:${Math.round(RV.i/N*100)}%"></i></div></div>
  <div class="jm"><span class="jt">${jday(e.created)} ${jtime(e.created)}</span>${e.type?`<span class="jty">${e.type}</span>`:''}<span class="lvl" id="rvLvl"></span><span class="mut">${daysSince(e.created)}d old</span></div>

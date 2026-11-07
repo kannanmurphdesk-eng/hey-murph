@@ -6,7 +6,7 @@ function renderHome(){const el=$('#home'),t=dAgo(0),mon=t.slice(0,7);
  <div class="hcard hm" style="--c:#ff7ad9"><div class="hmh"><b>📓 Journal</b><span id="hjMeta"></span></div>
   <form id="hjForm"><textarea id="hjText" rows="3" placeholder="Quick capture a thought… (auto-stamped)"></textarea>
   <div class="hmrow"><button class="primary" id="hjSave">Save</button><button type="button" class="hmgo" data-go="journal">Open Journal ›</button></div></form></div>
- <div class="hcard hm" style="--c:#5F7BFF"><div class="hmh"><b>◎ Focus list</b><span id="htMeta"></span></div><ul id="htList"></ul>
+ <div class="hcard hm" style="--c:#5F7BFF"><div class="hmh"><b>✓ To do</b><span id="htMeta"></span></div><ul id="htList"></ul>
   <button type="button" class="hmgo full" data-go="tasks">Open Tasks ›</button></div>
  <div class="hcard hm" id="hhCard" style="--c:#FFB83F"><div class="hmh"><b>🔥 Habits &amp; Travel</b><span id="hhMeta"></span></div><div id="hhTrav"></div><div id="hh7"></div><div class="hmticks" id="hhTicks"></div>
   <button type="button" class="hmgo full" data-go="habits">Open Habits &amp; Travel ›</button></div>`;
@@ -19,9 +19,9 @@ function renderHome(){const el=$('#home'),t=dAgo(0),mon=t.slice(0,7);
  const rec=J.filter(e=>jstage(e)==='inbox').length,pend=J.filter(e=>jstage(e)==='processed').length;
  $('#hjMeta').innerHTML=`<em class="${rec?'hmn':''}">${rec}</em> unprocessed${pend?` · ${pend} to execute`:''}`;
  // tasks
- const L=openIn('focus').sort((a,b)=>b.top-a.top).slice(0,CAP),od=L.filter(isOver).length;
- $('#htMeta').innerHTML=`${L.length}/${CAP} open${od?` · <span class="od">${od} overdue</span>`:''}`;
- $('#htList').innerHTML=L.slice(0,3).map(i=>`<li class="${i.top?'top':''}" data-id="${i.id}" style="--stripe:${i.tags[0]?TC[i.tags[0]]:i.top?'#f5c96a':'#8f6bff'}"><button class="chk" data-a="done" aria-label="Done"></button><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div>${i.due||i.subs&&i.subs.length?`<div class="m">${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span>`:''}</div>`:''}</div></li>`).join('')||'<li class="empty">Focus list is clear.</li>';
+ const L=openIn('todo').sort(todoSort),od=L.filter(isOver).length;
+ $('#htMeta').innerHTML=`${L.length} open${od?` · <span class="od">${od} overdue</span>`:''}`;
+ $('#htList').innerHTML=L.slice(0,3).map(todoRow).join('')||'<li class="empty">Nothing to do.</li>';
  // habits & travel
  const di=dlHi(),dh=di===null?null:H.habits[di],ml=new Date(mon+'-01T00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'});
  $('#hhMeta').textContent=ml;

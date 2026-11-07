@@ -338,3 +338,9 @@ dialog.poed label{display:flex;flex-direction:column;gap:4px;margin:6px 0}dialog
 .poopt label{display:inline-flex;align-items:center;gap:4px}.poopt input{width:16px;height:16px;margin:0;flex:none}
 
 .poln{font-size:.82em;opacity:.75}.pdot{background:#ff5e5e;color:#fff;border-radius:9px;padding:0 6px;font-size:.7em;font-weight:700;vertical-align:middle}.pdh{font-weight:700;font-size:1.05em}.pdg{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:8px 0}.pdr small{display:block;font-size:.72em;opacity:.6}.pdn{white-space:pre-wrap;font-size:.88em;opacity:.9}
+
+/* v65 Focus topics + To do */
+.ftop .t{display:flex;align-items:center;gap:10px;font-weight:600}.fnum{min-width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;font-size:11px;background:rgba(95,123,255,.18);color:#a9c1ff}
+.ftop .m{margin-left:32px}.fcnt,.ftp{font-size:11.5px;opacity:.7;margin-right:6px}
+.mki,.mku{display:inline-block;padding:1px 7px;margin:0 4px 4px 0;border-radius:999px;font-size:11px;font-weight:600}.mki{background:rgba(255,181,71,.16);color:#ffcf85;border:1px solid rgba(255,181,71,.4)}.mku{background:rgba(255,79,180,.15);color:#ff9fd6;border:1px solid rgba(255,79,180,.4)}
+.etd{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}.etd label:not(.row){flex:1 1 100%}
