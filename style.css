@@ -347,3 +347,5 @@ dialog.poed label{display:flex;flex-direction:column;gap:4px;margin:6px 0}dialog
 
 /* v67 topics: name + its to-dos only */
 .ftop{display:block}.ftop .t{font-weight:600;font-size:16px}.ftd{font-size:13px;opacity:.75;padding:5px 0 0 14px;position:relative;cursor:pointer}.ftd::before{content:'•';position:absolute;left:2px}
+
+.elk{max-height:220px;overflow:auto}.elk label{font-size:13px;align-items:flex-start}

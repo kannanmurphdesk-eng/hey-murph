@@ -63,7 +63,7 @@ function render(){
 const tagChip=t=>t?`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`:'';
 function renderTopics(){const L=openIn('focus').sort((a,b)=>b.top-a.top);
  $('#list').innerHTML=L.map(i=>{const td=openIn('todo').filter(x=>x.topic===i.id).sort(todoSort);
-  return `<li class="ftop" data-id="${i.id}"><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div></div>${td.map(x=>`<div class="ftd" data-a="edit" data-tid="${x.id}">${esc(x.title)}</div>`).join('')}</li>`}).join('')||'<li class="empty">No topics yet.</li>'}
+  return `<li class="ftop" data-id="${i.id}"><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div>${(t=>t?`<div class="m">${tagChip(t)}</div>`:"")((i.tags||[]).find(x=>FTAGS.includes(x)))}</div>${td.map(x=>`<div class="ftd" data-a="edit" data-tid="${x.id}">${esc(x.title)}</div>`).join('')}</li>`}).join('')||'<li class="empty">No topics yet.</li>'}
 function todoRow(i){const tp=i.topic&&items.find(x=>x.id===i.topic);
  return `<li class="tdo" data-id="${i.id}" style="--stripe:${i.important&&i.urgent?'#ff6b5e':i.important?'#ffb547':i.urgent?'#ff4fb4':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button><div class="body" data-a="edit"><div class="t">${esc(i.title)}</div><div class="m">${i.important?'<span class="mki">Important</span>':''}${i.urgent?'<span class="mku">Urgent</span>':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span> `:''}${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}${tp?`<span class="ftp">◎ ${esc(tp.title)}</span>`:''}</div></div></li>`}
 function renderTodo(){const L=openIn('todo').sort(todoSort);$('#list').innerHTML=L.map(todoRow).join('')||'<li class="empty">Nothing to do. Clear skies.</li>'}
@@ -111,16 +111,19 @@ let editing=null;
 let esubs=[];
 function drawSubs(){$('#eSubs').innerHTML=esubs.map((s,k)=>`<div class="fsub"><input type="checkbox" data-si="${k}"${s.done?' checked':''}><span class="${s.done?'dn':''}">${esc(s.t)}</span><button type="button" data-sd="${k}" aria-label="Delete">✕</button></div>`).join('')}
 (function(){const f=$('#editForm'),n=f.notes.closest('label');const po=document.createElement('div');po.id='ePo';po.className='fpog';po.innerHTML='<label>Expected CM (₹ lakh)<input name="cm" type="number" step="0.01" min="0" inputmode="decimal" placeholder="e.g. 2.5"></label><label>Expected month<input name="month" type="month"></label>';
- const sb=document.createElement('div');sb.innerHTML='<div class="fsl">Sub-tasks</div><div id="eSubs"></div><div class="fsadd"><input id="eSubIn" placeholder="Add sub-task…"><button type="button" id="eSubBtn">+</button></div>';
+ const sb=document.createElement('div');sb.id='eSubBox';sb.innerHTML='<div class="fsl">Sub-tasks</div><div id="eSubs"></div><div class="fsadd"><input id="eSubIn" placeholder="Add sub-task…"><button type="button" id="eSubBtn">+</button></div>';
  const td=document.createElement('div');td.id='eTodo';td.className='etd';td.innerHTML='<label class="row"><input type="checkbox" name="imp"> Important</label><label class="row"><input type="checkbox" name="urg"> Urgent</label><label>Topic<select name="topic"></select></label>';
- const ls=document.createElement('label');ls.innerHTML='List<select name="list">'+Object.keys(LN).map(l=>`<option value="${l}">${LN[l]}</option>`).join('')+'</select>';
+ const ls=document.createElement('label');ls.id='eListL';ls.innerHTML='List<select name="list">'+Object.keys(LN).map(l=>`<option value="${l}">${LN[l]}</option>`).join('')+'</select>';
  f.title.closest('label').after(ls);ls.after(po);po.after(td);n.before(sb);
  const addS=()=>{const v=$('#eSubIn').value.trim();if(!v)return;esubs.push({t:v,done:false});$('#eSubIn').value='';drawSubs()};
  $('#eSubBtn').onclick=addS;$('#eSubIn').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addS()}};
  $('#eSubs').onclick=e=>{const d=e.target.closest('[data-sd]');if(d){esubs.splice(+d.dataset.sd,1);drawSubs()}};
  $('#eSubs').onchange=e=>{const c=e.target.closest('[data-si]');if(c){esubs[+c.dataset.si].done=c.checked;drawSubs()}};
  f.list.onchange=()=>{po.hidden=f.list.value!=='po';dueMode(f,f.list.value==='po');editMode(f,f.list.value)}})();
-function editMode(f,l){$('#eTodo').hidden=l!=='todo';$('#tagBox').hidden=l==='todo';f.top.closest('label').hidden=l!=='focus';
+function editMode(f,l){const fo=l==='focus';$('#eTodo').hidden=l!=='todo';$('#tagBox').hidden=l==='todo';f.top.closest('label').hidden=true;
+ f.due.closest('label').hidden=fo;f.notes.closest('label').hidden=fo;$('#eSubBox').hidden=fo;$('#eListL').hidden=fo;
+ let lk=$('#eLinks');if(!lk){lk=document.createElement('fieldset');lk.id='eLinks';lk.className='elk';$('#tagBox').after(lk)}lk.hidden=!fo;
+ if(fo){const T=openIn('todo').sort(todoSort);lk.innerHTML='<legend>Linked to-dos</legend>'+(T.map(t=>`<label class="row"><input type="checkbox" name="lk" value="${t.id}"${editing&&t.topic===editing.id?' checked':''}> ${esc(t.title)}</label>`).join('')||'<div class="fcnt">No open to-dos.</div>')}
  f.querySelectorAll('[name=tag]').forEach(c=>{c.closest('label').hidden=l==='focus'&&!FTAGS.includes(c.value)});
  const cur=editing&&editing.topic||'';f.topic.innerHTML='<option value="">— none —</option>'+openIn('focus').map(t=>`<option value="${t.id}"${t.id===cur?' selected':''}>${esc(t.title)}</option>`).join('')}
 function dueMode(f,po){const v=f.due.value;if(po===(f.due.type==='month'))return;f.due.type=po?'month':'date';f.due.value=po?v.slice(0,7):v?v+'-01':'';$('#eDueL').textContent=po?'Expected close month':'Due'}
@@ -131,7 +134,7 @@ $('#edit').addEventListener('close',()=>{const r=$('#edit').returnValue,f=$('#ed
  if(r==='delete'){if(confirm('Delete "'+i.title+'"?')){items=items.filter(x=>x!==i);save();render()}return}
  if(r!=='save')return;
  if(f.list.value!==i.list){if(!i.done&&!canIn(f.list.value))return;i.list=f.list.value;if(i.list!=='focus')i.top=false}
- if(esubs.length||i.subs)i.subs=esubs;if(i.list==='todo'){i.important=f.imp.checked;i.urgent=f.urg.checked;i.topic=f.topic.value}if(i.list==='po'){if(f.cm.value||i.cm)i.cm=f.cm.value;if(f.month.value||i.month)i.month=f.month.value}
+ if(esubs.length||i.subs)i.subs=esubs;if(i.list==='todo'){i.important=f.imp.checked;i.urgent=f.urg.checked;i.topic=f.topic.value}if(i.list==='focus'){const on=new Set([...f.querySelectorAll('[name=lk]:checked')].map(c=>c.value)),now=Date.now();for(const t of openIn('todo')){if(on.has(t.id)&&t.topic!==i.id){t.topic=i.id;t.updatedAt=now}else if(!on.has(t.id)&&t.topic===i.id){t.topic='';t.updatedAt=now}}}if(i.list==='po'){if(f.cm.value||i.cm)i.cm=f.cm.value;if(f.month.value||i.month)i.month=f.month.value}
  if(f.top.checked&&!i.top){if(i.list!=='focus'||i.done)toast('Top priority only applies to open Focus items.');else if(items.filter(x=>x.top&&!x.done).length>=TOPCAP)toast('Max 3 top priority items.');else i.top=true}else if(!f.top.checked)i.top=false;
  i.title=f.title.value.trim()||i.title;i.due=f.due.type==='month'?(!f.due.value?'':(i.due||'').slice(0,7)===f.due.value?i.due:f.due.value+'-01'):f.due.value;if(f.notes.value.trim()||i.notes)i.notes=f.notes.value;i.tags=[...f.querySelectorAll('[name=tag]:checked')].map(c=>c.value);save();render()});
 // export/import
