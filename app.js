@@ -30,6 +30,17 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 function legacyMove(){let c=0;for(const i of items)if(i.list==='next'||i.list==='radar'){i.list='cold';i.top=false;i.updatedAt=Date.now();c++}if(c)save()}
 // v65 one-time: open Focus tasks become topics (no tag) and their action goes to To do. Deterministic ids so it is safe to run on more than one device.
 const V65T={mvor0n2bdv159:'NIT Calicut - Pario',mvmrzfi9ps583:'IIT Dharwad - Tempos',mvm34e7ado6yq:'ICAR-CICR - Atmos 41',mve8wcaxz4zdc:'IIT Palakkad - Hyprop 3',mvvpxntccgcbq:'BITS Pilani - DAQ',mvojuzk5ijutn:'ideaForge - Requirements',mvclmoz0umm3o:'NCESS - Hyprop',mv80tj7e9636n:'IIT Palakkad - Quote feedback',mvk4r2xk74jbn:'JTEKT - Torque',mvktkj5bmf2ru:'SRM - DT80'};
+// v73: merge duplicate PO cards once (keep <- drop); drop goes Not active, nothing deleted
+const V73M=[['mvgw5ekegfk6o','mv6ukfsqnfad3'],['mvgw5ekeey6p6','mv7s3u1rbmm81'],['mvgw5ekeaw7om','mv7rhqkopencx'],['mvgw5ekfd0pia','mv8abdqxkaqp8']];
+function v73merge(){let c=0;const now=Date.now(),bl=v=>v==null||String(v).trim()==='';
+ for(const[k,x]of V73M){const a=items.find(i=>i.id===k),b=items.find(i=>i.id===x);if(!a||!b||b.mrg)continue;
+  for(const f of['customer','pot','cost','quoted','prob','due','principal','model','eu','nxt','notes','stage','month','cm'])if(bl(a[f])&&!bl(b[f]))a[f]=b[f];
+  for(const f of['swS','swW','swO','swT']){if(bl(a[f])&&!bl(b[f]))a[f]=b[f];else if(!bl(b[f])&&a[f]!==b[f])a[f]=b[f]+' · '+a[f]}
+  if(!bl(b.cm)&&!bl(a.cm)&&String(a.cm)!==String(b.cm))a.nxt=(a.nxt?a.nxt+' ':'')+'(Merged card had CM '+b.cm+' L.)';
+  a.tags=[...new Set([...(a.tags||[]),...(b.tags||[])])];
+  for(const i of items)if(i.po===x){i.po=k;i.updatedAt=now}
+  b.active=false;b.mrg=k;a.updatedAt=now;b.updatedAt=now;c++}
+ if(c)save()}
 function v65mig(){let c=0;
  for(const i of items.filter(x=>x.list==='focus'&&!x.done&&!x.v65&&V65T[x.id])){const tid='td_'+i.id;
   if(!items.some(x=>x.id===tid)){const t=mk(i.title,'todo',{due:i.due,subs:i.subs,important:i.tags.includes('damage control'),urgent:i.tags.includes('damage control'),topic:i.id,customer:i.customer});t.id=tid;t.updatedAt=Date.now();if(i.notes)t.notes=i.notes;if(i.jid)t.jid=i.jid;items.push(t)}
@@ -42,7 +53,7 @@ function v65mig(){let c=0;
 const todoRank=i=>(isOver(i)?0:10)+(i.important&&i.urgent?0:i.important?1:i.urgent?2:3);
 const todoSort=(a,b)=>todoRank(a)-todoRank(b)||(a.due||'9999').localeCompare(b.due||'9999')||a.created-b.created;
 function render(){
- legacyMove();v65mig();if(typeof fmigrate==='function')fmigrate();
+ legacyMove();v65mig();v73merge();if(typeof fmigrate==='function')fmigrate();
  if(view==='flow')view=fview;const flv=FLOWV.includes(view);if(flv)fview=view;
  const sg=SEG(view);if(sg==='tasks')tview=view;else if(sg==='habits')hview=view;
  const hv=sg!=='tasks';$('#home').hidden=view!=='home';if(view==='home'&&typeof renderHome==='function')renderHome();$('#habits').hidden=view!=='habits';$('#travel').hidden=view!=='travel';if(view==='travel'&&typeof renderTravel==='function')renderTravel();$('#journal').hidden=view!=='journal';$('#flow').hidden=!flv;if(flv&&typeof renderFlow==='function')renderFlow();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
@@ -187,7 +198,7 @@ function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote()}
 $('#quote').addEventListener('click',nextQuote);$('#quote').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();nextQuote()}});
 function greet(){const d=new Date(),h=d.getHours();$('#greet').textContent=(h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', sir';
  $('#dateLine').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})}
-const APPV='v73';$('#appVer').textContent=APPV;greet();showQuote();
+const APPV='v74';$('#appVer').textContent=APPV;greet();showQuote();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 render();
