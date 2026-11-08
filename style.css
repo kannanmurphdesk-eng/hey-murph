@@ -360,3 +360,7 @@ dialog.poed label{display:flex;flex-direction:column;gap:4px;margin:6px 0}dialog
 .mc .mcs{font-size:12.5px;opacity:.85;margin-top:4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.mc .mcs small{opacity:.7}
 
 .aver{font-size:11px;font-weight:600;padding:2px 7px;border-radius:9px;background:rgba(95,123,255,.18);color:#a9c1ff;vertical-align:middle;margin-left:4px;letter-spacing:0}
+
+.mc1 .mcr{white-space:nowrap;overflow:hidden}.mc1 .mcr b{overflow:hidden;text-overflow:ellipsis;flex-shrink:1;max-width:none;min-width:0}
+.mc1 .mcr span{color:inherit;font-weight:500;font-size:14px;opacity:.85;flex-shrink:0;max-width:45%;overflow:hidden;text-overflow:ellipsis}
+.mc1 .mcr em{opacity:.6;font-weight:400}.mc1 .mdot{width:7px;height:7px;border-radius:50%;background:#ff6b5e;flex-shrink:0;align-self:center}
