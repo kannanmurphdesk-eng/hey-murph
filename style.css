@@ -364,3 +364,5 @@ dialog.poed label{display:flex;flex-direction:column;gap:4px;margin:6px 0}dialog
 .mc1 .mcr{white-space:nowrap;overflow:hidden}.mc1 .mcr b{overflow:hidden;text-overflow:ellipsis;flex-shrink:1;max-width:none;min-width:0}
 .mc1 .mcr span{color:inherit;font-weight:500;font-size:14px;opacity:.85;flex-shrink:0;max-width:45%;overflow:hidden;text-overflow:ellipsis}
 .mc1 .mcr em{opacity:.6;font-weight:400}.mc1 .mdot{width:7px;height:7px;border-radius:50%;background:#ff6b5e;flex-shrink:0;align-self:center}
+li.mc1,#htList li.mc1{background:none;border:0;border-radius:0;border-bottom:1px solid rgba(255,255,255,.07);margin:0;padding:10px 4px;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;animation:none}
+li.mc1::before,li.mc1::after{display:none!important}li.mc1:last-child{border-bottom:0}
