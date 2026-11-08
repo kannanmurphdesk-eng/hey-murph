@@ -50,7 +50,7 @@ $('#jform').addEventListener('input',jprev);
 $('#jform').addEventListener('click',e=>{const a=e.target.closest('[data-j]');if(!a)return;e.preventDefault();const k=a.dataset.j;
  if(k==='b')jwrap('**');else if(k==='h')jwrap('==');else if(k==='proc'){jcommit();jcur.stage='processed';jcur.processedAt=Date.now();jsave();jprev();toast('Reviewed');render()}
  else if(k==='unproc'){jcommit();jcur.stage='record';jsave();jprev()}
- else if(DEST[k])jexec(k);else if(k==='del'){if(confirm('Delete this journal entry?')){J=J.filter(x=>x!==jcur);jsave();$('#jedit').close('x');render()}}
+ if(k==='jdel'){if(confirm('Delete this journal entry?')){J=J.filter(x=>x!==jcur);jsave();$('#jedit').close('x');render()}}else if(DEST[k])jexec(k);
  else if(k==='save'){jcommit();jsave();$('#jedit').close('x');render()}else if(k==='cancel')$('#jedit').close('x')});
 function jImport(arr){if(!Array.isArray(arr))return;J=arr.map(jnorm);jsave()}
 $('#jform').addEventListener('submit',e=>e.preventDefault());
