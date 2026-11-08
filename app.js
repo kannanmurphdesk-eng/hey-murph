@@ -84,8 +84,9 @@ function mcPO(i){const f=i.list==='focus'?i:i.topic&&items.find(x=>x.id===i.topi
 function mcEndUser(i){if(i.eu)return i.eu;const po=mcPO(i);if(po&&po.eu)return po.eu;if(i.list==='todo')return mcEU(i.title);const t=openIn('todo').find(x=>x.topic===i.id);return t&&mcEU(t.title)||po&&mcEU(po.title)||''}
 function mcLine(i){const po=mcPO(i),pr=po&&mcKnown(po.principal),md=po&&mcKnown(String(po.model||'').replace(/\s*\([^)]*\)/g,'').trim()),eu=mcEndUser(i);
  return {pr:[pr,md].filter(Boolean).join(' · '),eu}}
-function topicRow(i){const {eu}=mcLine(i),po=mcPO(i),pr=po&&mcKnown(po.principal),tg=(i.tags||[]).find(x=>FTAGS.includes(x));
-  return `<li class="ftop mc mc1" data-id="${i.id}"><div class="body" data-a="edit"><div class="mcr">${tg?`<span class="mdot" title="${esc(tg)}"></span>`:''}<b>${esc(mcCust(i))}${eu?` <em>· ${esc(eu)}</em>`:''}</b>${pr?`<i></i><span>${esc(pr)}</span>`:''}</div></div></li>`}
+function topicRow(i){const eu=mcEndUser(i),tg=(i.tags||[]).find(x=>FTAGS.includes(x)),t=(i.title||'').trim();
+  const full=eu&&!t.toLowerCase().includes(eu.toLowerCase())?t+' - '+eu:t;
+  return `<li class="ftop mc mc1" data-id="${i.id}"><div class="body" data-a="edit"><div class="mcr">${tg?`<span class="mdot" title="${esc(tg)}"></span>`:''}<b>${esc(full)}</b></div></div></li>`}
 function todoRow(i){const {pr,eu}=mcLine(i),p=(i.title||'').split(' - '),act=p.length>2?p.slice(1,-1).join(' - '):p.slice(1).join(' - ');
  return `<li class="tdo mc" data-id="${i.id}" style="--stripe:${i.important&&i.urgent?'#ff6b5e':i.important?'#ffb547':i.urgent?'#ff4fb4':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button><div class="body" data-a="edit"><div class="mcr"><b>${esc(mcCust(i))}</b>${pr?`<i></i><span>${esc(pr)}</span>`:''}</div>${act?`<div class="mca">${esc(act)}</div>`:''}<div class="mcs">${eu?'👤 '+esc(eu)+' ':''}${i.important?'<span class="mki">Important</span>':''}${i.urgent?'<span class="mku">Urgent</span>':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span>`:''}</div></div></li>`}
 function renderTodo(){const L=openIn('todo').sort(todoSort);$('#list').innerHTML=L.map(todoRow).join('')||'<li class="empty">Nothing to do. Clear skies.</li>'}
@@ -198,7 +199,7 @@ function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote()}
 $('#quote').addEventListener('click',nextQuote);$('#quote').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();nextQuote()}});
 function greet(){const d=new Date(),h=d.getHours();$('#greet').textContent=(h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', sir';
  $('#dateLine').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})}
-const APPV='v76';$('#appVer').textContent=APPV;greet();showQuote();
+const APPV='v77';$('#appVer').textContent=APPV;greet();showQuote();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 render();
