@@ -32,6 +32,7 @@ function legacyMove(){let c=0;for(const i of items)if(i.list==='next'||i.list===
 const V65T={mvor0n2bdv159:'NIT Calicut - Pario',mvmrzfi9ps583:'IIT Dharwad - Tempos',mvm34e7ado6yq:'ICAR-CICR - Atmos 41',mve8wcaxz4zdc:'IIT Palakkad - Hyprop 3',mvvpxntccgcbq:'BITS Pilani - DAQ',mvojuzk5ijutn:'ideaForge - Requirements',mvclmoz0umm3o:'NCESS - Hyprop',mv80tj7e9636n:'IIT Palakkad - Quote feedback',mvk4r2xk74jbn:'JTEKT - Torque',mvktkj5bmf2ru:'SRM - DT80'};
 // v73: merge duplicate PO cards once (keep <- drop); drop goes Not active, nothing deleted
 const V73M=[['mvgw5ekegfk6o','mv6ukfsqnfad3'],['mvgw5ekeey6p6','mv7s3u1rbmm81'],['mvgw5ekeaw7om','mv7rhqkopencx'],['mvgw5ekfd0pia','mv8abdqxkaqp8']];
+function v79drop(){const it=items.find(x=>x.id==='mvgw5ekegfk6o');if(!it||it.v79)return;it.active=false;it.v79=1;const r='Dropped 9 Nov 2026: not participating (no METER MAF).';if(!String(it.nxt||'').includes('Dropped 9 Nov'))it.nxt=(it.nxt?it.nxt+' ':'')+r;it.updatedAt=Date.now();save()}
 function v73merge(){let c=0;const now=Date.now(),bl=v=>v==null||String(v).trim()==='';
  for(const[k,x]of V73M){const a=items.find(i=>i.id===k),b=items.find(i=>i.id===x);if(!a||!b||b.mrg)continue;
   for(const f of['customer','pot','cost','quoted','prob','due','principal','model','eu','nxt','notes','stage','month','cm'])if(bl(a[f])&&!bl(b[f]))a[f]=b[f];
@@ -53,7 +54,7 @@ function v65mig(){let c=0;
 const todoRank=i=>(isOver(i)?0:10)+(i.important&&i.urgent?0:i.important?1:i.urgent?2:3);
 const todoSort=(a,b)=>todoRank(a)-todoRank(b)||(a.due||'9999').localeCompare(b.due||'9999')||a.created-b.created;
 function render(){
- legacyMove();v65mig();v73merge();if(typeof fmigrate==='function')fmigrate();
+ legacyMove();v65mig();v73merge();v79drop();if(typeof fmigrate==='function')fmigrate();
  if(view==='flow')view=fview;const flv=FLOWV.includes(view);if(flv)fview=view;
  const sg=SEG(view);if(sg==='tasks')tview=view;else if(sg==='habits')hview=view;
  const hv=sg!=='tasks';$('#home').hidden=view!=='home';if(view==='home'&&typeof renderHome==='function')renderHome();$('#habits').hidden=view!=='habits';$('#travel').hidden=view!=='travel';if(view==='travel'&&typeof renderTravel==='function')renderTravel();$('#journal').hidden=view!=='journal';$('#flow').hidden=!flv;if(flv&&typeof renderFlow==='function')renderFlow();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
@@ -199,7 +200,7 @@ function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote()}
 $('#quote').addEventListener('click',nextQuote);$('#quote').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();nextQuote()}});
 function greet(){const d=new Date(),h=d.getHours();$('#greet').textContent=(h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', sir';
  $('#dateLine').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})}
-const APPV='v78';$('#appVer').textContent=APPV;greet();showQuote();
+const APPV='v79';$('#appVer').textContent=APPV;greet();showQuote();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 render();
