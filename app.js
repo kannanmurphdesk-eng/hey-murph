@@ -120,7 +120,7 @@ function weekly(){const W=8,w=300,hh=90;let bars='',lab='';
   lab+=`<text x="${x+20}" y="${hh}" text-anchor="middle">${k?'-'+k+'w':'now'}</text>`}
  return `<svg viewBox="0 0 ${w} ${hh+2}" class="wk" role="img" aria-label="Weekly completion">${[0,.5,1].map(f=>`<line x1="0" x2="${w}" y1="${hh-12-f*(hh-14)}" y2="${hh-12-f*(hh-14)}"/>`).join('')}${bars}${lab}</svg>`}
 function hdlFix(){const on=H.habits.map((h,i)=>h.dl?i:-1).filter(i=>i>=0);if(on.length<2)return;const keep=on.find(i=>/duty/i.test(H.habits[i].name))??on[0];on.forEach(i=>{if(i!==keep)delete H.habits[i].dl});H.updatedAt=Date.now();hsave()}
-function renderHabits(){hdlFix();const t=dAgo(0);const anyDl=H.habits.some(h=>h.dl);$('#habits').innerHTML=H.habits.map((h,i)=>{const s=hstats(h),on=h.days[t];
+function renderHabits(){hdlFix();const t=dAgo(0);const anyDl=H.habits.some(h=>h.dl);$('#habits').innerHTML=hgrid()+H.habits.map((h,i)=>{const s=hstats(h),on=h.days[t];
  return `<div class="hcard" style="--c:${h.color}"><div class="hhead"><button class="hname" data-hn="${i}" title="Tap to rename">${esc(h.name)} <span>✎</span></button><span class="hpct">${s.pct}%<small> 30d</small></span></div>
  <button class="hbig${on?' on':''}" data-ht="${i}">${on?'✓ Done today':'Mark today done'}${h.dl&&h.log&&h.log[t]&&!h.log[t].del&&h.log[t].type?' · '+dlName(h.log[t].type):''}</button>
  <div class="hst"><div><b>${s.cur}</b><span>current streak</span></div><div><b>${s.best}</b><span>best streak</span></div><div><b>${s.pct}%</b><span>last 30 days</span></div></div>${strip(h,i)}${h.dl||!anyDl?`<button class="dltg" data-dlt="${i}">${h.dl?'📍 Day log on':'📍 Add day log (place, remarks)'}</button>`:''}${h.dl?dlMini(i):''}</div>`}).join('')
@@ -129,6 +129,14 @@ $('#habits').addEventListener('click',e=>{if(e.target.closest('.dlp,.dltg'))retu
  if(b.dataset.hn){const h=H.habits[b.dataset.hn],n=prompt('Habit name',h.name);if(n&&n.trim())h.name=n.trim().slice(0,40)}
  else if(!htick(+(b.dataset.ht??b.dataset.h),b.dataset.d||dAgo(0)))return;
  hsave();renderHabits()});
+// v80: month habit tracker grid (tick habits only; the day-log habit is a typed log and stays on its own card). Cells reuse htick so they sync.
+let hgM=dAgo(0).slice(0,7);
+function hgrid(){const[y,m]=hgM.split('-').map(Number),n=new Date(y,m,0).getDate(),t=dAgo(0),HB=H.habits.map((h,i)=>[h,i]).filter(([h])=>!h.dl),pd=d=>hgM+'-'+String(d).padStart(2,'0');
+ const ml=new Date(y,m-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'}),cur=hgM===t.slice(0,7);let hd='<th class="h">Habit</th>';for(let d=1;d<=n;d++)hd+=`<th class="${pd(d)===t?'today':''}">${d}</th>`;hd+='<th class="s">Done</th>';
+ const rows=HB.map(([h,i])=>{let c=0,r=`<td class="h" style="color:${h.color}">${esc(h.name)}</td>`;for(let d=1;d<=n;d++){const k=pd(d),on=!!h.days[k];if(on)c++;r+=`<td class="${k===t?'today':''}">${k>t?'<span class="hgf"></span>':`<button class="hgc${on?' on':''}" data-h="${i}" data-d="${k}" style="--c:${h.color}" aria-label="${esc(h.name)} ${k}">${on?'✓':''}</button>`}</td>`}return `<tr>${r}<td class="s">${c}/${n}</td></tr>`}).join('');
+ return `<div class="hcard hgc0" style="--c:#2fd3e0"><div class="hhead"><span class="hname static">Habit tracker</span><span class="hgnav"><button data-hgm="-1" aria-label="Previous month">‹</button><b>${ml}</b><button data-hgm="1" aria-label="Next month"${cur?' disabled':''}>›</button></span></div><div class="hgs"><table class="hgt"><tr>${hd}</tr>${rows||`<tr><td class="h">No tick habits</td></tr>`}</table></div></div>`}
+$('#habits').addEventListener('click',e=>{const b=e.target.closest('[data-hgm]');if(!b)return;e.stopPropagation();const[y,m]=hgM.split('-').map(Number),x=new Date(y,m-1+(+b.dataset.hgm),1);hgM=x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0');if(hgM>dAgo(0).slice(0,7))hgM=dAgo(0).slice(0,7);renderHabits()},true);
+{const _hgR=renderHabits;renderHabits=function(){_hgR.apply(this,arguments);const s=document.querySelector('.hgs'),c=s&&s.querySelector('th.today');if(c)s.scrollLeft=Math.max(0,c.offsetLeft-s.clientWidth/2)}}
 // tick/untick a habit day (shared by Habits and Home); a day-log habit opens the day log instead of ticking. Returns false if the dialog was opened.
 function htick(i,d){const h=H.habits[i];if(h.dl&&!h.days[d]){dlOpen(i,d);return false}h.days[d]=h.days[d]?0:1;h.ts=h.ts||{};h.ts[d]=Date.now();return true}
 let editing=null;
@@ -199,8 +207,8 @@ function showQuote(){const b=$('#qText');b.classList.remove('in');void b.offsetW
 function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote()}
 $('#quote').addEventListener('click',nextQuote);$('#quote').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();nextQuote()}});
 function greet(){const d=new Date(),h=d.getHours();$('#greet').textContent=(h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', sir';
- $('#dateLine').textContent=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})}
-const APPV='v79';$('#appVer').textContent=APPV;greet();showQuote();
+ $('#dateLine').innerHTML=esc(d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}))+'<span class="tagl"> · One mind. One target.</span>'}
+const APPV='v80';$('#appVer').textContent=APPV;greet();showQuote();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 render();

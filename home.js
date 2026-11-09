@@ -3,6 +3,7 @@
 function hmGo(v){view=v;render();scrollTo(0,0)}
 function renderHome(){const el=$('#home'),t=dAgo(0),mon=t.slice(0,7);
  if(!el.dataset.init){el.dataset.init=1;el.innerHTML=`
+ <div class="hstat" id="hStats"></div>
  <div class="hcard hm" style="--c:#ff7ad9"><div class="hmh"><b>📓 Journal</b><span id="hjMeta"></span></div>
   <form id="hjForm"><textarea id="hjText" rows="3" placeholder="Quick capture a thought… (auto-stamped)"></textarea>
   <div class="hmrow"><button class="primary" id="hjSave">Save</button><button type="button" class="hmgo" data-go="journal">Open Journal ›</button></div></form></div>
@@ -15,6 +16,11 @@ function renderHome(){const el=$('#home'),t=dAgo(0),mon=t.slice(0,7);
   $('#htList').onclick=e=>{const a=e.target.closest('[data-a]');if(!a)return;if(a.dataset.a==='po'){openPO(a.dataset.pid);return}openEdit(a.dataset.tid||a.closest('li').dataset.id)};
   $('#hh7').onclick=e=>{const b=e.target.closest('[data-c7]');if(b&&typeof cal7Go==='function')cal7Go(b.dataset.c7)};
   $('#hhTicks').onclick=e=>{const b=e.target.closest('[data-hmt]');if(b&&htick(+b.dataset.hmt,dAgo(0))){hsave();renderHome()}}}
+ // v80 stat strip (inspired by the Focus dashboard)
+ {const TD=items.filter(i=>i.list==='todo'),dn=TD.filter(i=>i.done).length,TH=H.habits.filter(h=>!h.dl),el2=+t.slice(8);let tk=0,best=0;
+  for(const h of TH){for(const k in h.days)if(h.days[k]&&k.startsWith(mon)&&k<=t)tk++;best=Math.max(best,hstats(h).cur)}
+  const pc=TH.length?Math.round(tk/(TH.length*el2)*100):0,fp=TD.length?Math.round(dn/TD.length*100):0;
+  $('#hStats').innerHTML=`<div class="hsc" data-go="focus"><b>${openIn('focus').length}/${CAP}</b><span>Focus topics</span></div><div class="hsc" data-go="todo"><b>${dn}/${TD.length}</b><span>To-dos done</span><i class="hsb"><i style="width:${fp}%"></i></i></div><div class="hsc" data-go="habits"><b>${pc}%</b><span>Habit check-ins this month</span></div><div class="hsc" data-go="habits"><b>${best}</b><span>Best current streak (days)</span></div>`}
  // journal
  const rec=J.filter(e=>jstage(e)==='inbox').length,pend=J.filter(e=>jstage(e)==='processed').length;
  $('#hjMeta').innerHTML=`<em class="${rec?'hmn':''}">${rec}</em> unprocessed${pend?` · ${pend} to execute`:''}`;
