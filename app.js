@@ -26,6 +26,20 @@ function add(title,list){if(!title.trim())return false;if(!canIn(list))return fa
 function move(id,to){const i=items.find(x=>x.id===id);if(i&&i.list==='focus'&&!i.done&&to!=='focus')return render();if(!to||to===i.list||!canIn(to))return render();i.list=to;if(to!=='focus')i.top=false;save();render()}
 function toggleDone(id){const i=items.find(x=>x.id===id);if(i.done&&!canIn(i.list))return;i.done=!i.done;i.doneAt=i.done?Date.now():null;if(i.done)i.top=false;save();render()}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+// v81: 11-stage ribbon for Flow items (po, del, pay). item.stage stays free text until a listed stage is picked.
+const STAGES=['Cold calls','Customer inquiry / Product pitch','Data sheet submission','Technical review','Quote submission','Purchase process','Negotiations','PO issuance','Delivery','Installation','Payment'];
+const stageIdx=s=>STAGES.indexOf(String(s||'').trim());
+const stageListOf=s=>{const i=stageIdx(s);return i<0?null:i<=7?'po':i<=9?'del':'pay'};
+function applyStagePick(i,s){s=String(s||'').trim();if(stageIdx(s)<0||s===String(i.stage||'').trim())return false;i.stage=s;const l=stageListOf(s);if(l&&i.list!==l)i.list=l;return true}
+function stagePicker(i){const cur=String(i.stage||'').trim(),known=stageIdx(cur)>=0;
+ return`<label>Stage<select name="stage"><option value="">${known?'— select stage —':cur?esc(cur)+' (current)':'— select stage —'}</option>${STAGES.map((s,n)=>`<option value="${esc(s)}"${known&&s===cur?' selected':''}>${n+1}/11 · ${esc(s)}</option>`).join('')}</select></label>`}
+function stageRibbon(i,compact){const cur=String(i.stage||'').trim(),idx=stageIdx(cur),known=idx>=0;
+ const dots=STAGES.map((s,n)=>`<i class="${known&&n<idx?'done':known&&n===idx?'cur':''}" title="${esc(s)}"></i>`).join('');
+ const lab=known?`${idx+1}/11 · ${esc(cur)}`:cur?esc(cur):'';
+ if(compact)return`<div class="src"><span class="srb">${dots}</span>${lab?`<span class="srl">${lab}</span>`:''}</div>`;
+ const nxt=String(i.nxt||'').trim();
+ let next='';if(nxt)next=`<div class="srnx">Next: ${esc(nxt)}</div>`;else if(known&&idx<STAGES.length-1)next=`<div class="srnx hint">Next: ${esc(STAGES[idx+1])}</div>`;
+ return`<div class="srv"><div class="srb full">${dots}</div>${lab?`<div class="srl">${lab}</div>`:''}${next}</div>`}
 // v65: Under radar and Next action are retired; anything still there (old data or ops) goes to Cold storage.
 function legacyMove(){let c=0;for(const i of items)if(i.list==='next'||i.list==='radar'){i.list='cold';i.top=false;i.updatedAt=Date.now();c++}if(c)save()}
 // v65 one-time: open Focus tasks become topics (no tag) and their action goes to To do. Deterministic ids so it is safe to run on more than one device.
@@ -72,7 +86,7 @@ function render(){
  $('#filters').hidden=hv||['po','focus','todo'].includes(view);if(view==='po'&&typeof renderPO==='function'){renderPO();return}
  if(view==='focus'){renderTopics();return}if(view==='todo'){renderTodo();return}
  let pm=null;$('#list').innerHTML=L.map(i=>`${view==='po'&&(i.due||'').slice(0,7)!==pm?(pm=(i.due||'').slice(0,7),`<li class="mhd">${pm?dmon(i.due):'No date'} · ₹${+L.filter(x=>(x.due||'').slice(0,7)===pm).reduce((a,x)=>a+(+x.cm||0),0).toLocaleString('en-IN',{maximumFractionDigits:2})}L</li>`):''}<li class="${i.top?'top':''}" data-id="${i.id}" style="--stripe:${i.tags[0]?TC[i.tags[0]]:i.top?'#f5c96a':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button>
- <div class="body" data-a="edit"><div class="t">${esc(i.title)}${i.done&&typeof hasInsight==='function'&&hasInsight(i.id)?' <span class="insm" title="Has insight">💡</span>':''}</div><div class="m">${i.tags.map(t=>`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`).join('')}${i.list==='po'&&(i.cm||i.month)?`<span class="fpo">${[fcm(i.cm),fmon(i.month)].filter(Boolean).join(' · ')}</span> `:''}${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}${i.notes?'📝 ':''}${i.jid?'📓 ':''}${i.list==='po'?(i.due?`<span class="fpo">Expected: ${dmon(i.due)}</span>`:''):i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span>`:''}${view==='done'?' · '+(LN[i.list]||''):''}</div></div>
+ <div class="body" data-a="edit"><div class="t">${esc(i.title)}${i.done&&typeof hasInsight==='function'&&hasInsight(i.id)?' <span class="insm" title="Has insight">💡</span>':''}</div><div class="m">${i.tags.map(t=>`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`).join('')}${i.list==='po'&&(i.cm||i.month)?`<span class="fpo">${[fcm(i.cm),fmon(i.month)].filter(Boolean).join(' · ')}</span> `:''}${i.subs&&i.subs.length?`☑ ${i.subs.filter(s=>s.done).length}/${i.subs.length} `:''}${i.notes?'📝 ':''}${i.jid?'📓 ':''}${i.list==='po'?(i.due?`<span class="fpo">Expected: ${dmon(i.due)}</span>`:''):i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span>`:''}${view==='done'?' · '+(LN[i.list]||''):''}</div>${FLOWV.includes(i.list)?stageRibbon(i,true):''}</div>
  ${i.done?(typeof hasInsight==='function'?`<button class="mv ins${hasInsight(i.id)?' has':''}" data-a="insight">${hasInsight(i.id)?'💡':'💡 Insight'}</button>`:''):`<select class="mv" data-mv aria-label="Move to"><option value="">Move ▾</option>${Object.keys(LN).filter(l=>l!==i.list).map(l=>`<option value="${l}">→ ${LN[l]}</option>`).join('')}</select>`}</li>`).join('')||'<li class="empty">Nothing here. Clear skies.</li>';
 }
 const tagChip=t=>t?`<span class="tag" style="--c:${TC[t]||'#8f6bff'}">${esc(t)}</span>`:'';
@@ -159,6 +173,8 @@ function editMode(f,l){const fo=l==='focus';$('#eTodo').hidden=l!=='todo';$('#ta
   lk.innerHTML='<legend>Linked to-dos</legend>'+lnk.map(t=>`<label class="row"><input type="checkbox" name="lk" value="${t.id}" checked> ${esc(t.title)}</label>`).join('')+(fr.length?`<select id="eLkAdd"><option value="">+ Link a to-do</option>${fr.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join('')}</select>`:'');
   const ad=$('#eLkAdd');if(ad)ad.onchange=()=>{const o=ad.selectedOptions[0];if(!ad.value)return;const l=document.createElement('label');l.className='row';l.innerHTML=`<input type="checkbox" name="lk" value="${ad.value}" checked> ${esc(o.textContent)}`;ad.before(l);o.remove();ad.value=''}}
  f.querySelectorAll('[name=tag]').forEach(c=>{c.closest('label').hidden=l==='focus'&&!FTAGS.includes(c.value)});
+ let st=$('#eStage');if(!st){st=document.createElement('div');st.id='eStage';$('#eListL').after(st)}
+ const fl=l==='del'||l==='pay';st.hidden=!fl;if(fl){const it=editing||{};st.innerHTML=stagePicker(it)+`<label>Next action<input name="nxt" value="${esc(it.nxt||'')}"></label>`}else st.innerHTML='';
 }
 function dueMode(f,po){const v=f.due.value;if(po===(f.due.type==='month'))return;f.due.type=po?'month':'date';f.due.value=po?v.slice(0,7):v?v+'-01':'';$('#eDueL').textContent=po?'Expected close month':'Due'}
 function editItem(id){editing=items.find(x=>x.id===id);const f=$('#editForm');f.title.value=editing.title;f.due.type='date';$('#eDueL').textContent='Due';f.due.value=editing.due;dueMode(f,editing.list==='po');f.top.checked=editing.top;f.notes.value=editing.notes||'';
@@ -169,6 +185,8 @@ $('#edit').addEventListener('close',()=>{const r=$('#edit').returnValue,f=$('#ed
  if(r!=='save')return;
  if(f.list.value!==i.list&&i.list!=='focus'){if(!i.done&&!canIn(f.list.value))return;i.list=f.list.value;if(i.list!=='focus')i.top=false}
  if(esubs.length||i.subs)i.subs=esubs;if(i.list==='todo'){i.important=f.imp.checked;i.urgent=f.urg.checked}if(i.list==='focus'){i.po=f.pocard.value;const on=new Set([...f.querySelectorAll('[name=lk]:checked')].map(c=>c.value)),now=Date.now();for(const t of openIn('todo')){if(on.has(t.id)&&t.topic!==i.id){t.topic=i.id;t.updatedAt=now}else if(!on.has(t.id)&&t.topic===i.id){t.topic='';t.updatedAt=now}}}if(i.list==='po'){if(f.cm.value||i.cm)i.cm=f.cm.value;if(f.month.value||i.month)i.month=f.month.value}
+ if(f.stage){if(applyStagePick(i,f.stage.value))i.updatedAt=Date.now()}
+ if(f.nxt&&(f.nxt.value.trim()||i.nxt)){const nv=f.nxt.value.trim();if((i.nxt||'')!==nv)i.updatedAt=Date.now();i.nxt=nv}
  if(f.top.checked&&!i.top){if(i.list!=='focus'||i.done)toast('Top priority only applies to open Focus items.');else if(items.filter(x=>x.top&&!x.done).length>=TOPCAP)toast('Max 3 top priority items.');else i.top=true}else if(!f.top.checked)i.top=false;
  i.title=f.title.value.trim()||i.title;i.due=f.due.type==='month'?(!f.due.value?'':(i.due||'').slice(0,7)===f.due.value?i.due:f.due.value+'-01'):f.due.value;if(f.notes.value.trim()||i.notes)i.notes=f.notes.value;i.tags=[...f.querySelectorAll('[name=tag]:checked')].map(c=>c.value);save();render()});
 // export/import
@@ -208,21 +226,22 @@ function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote()}
 $('#quote').addEventListener('click',nextQuote);$('#quote').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();nextQuote()}});
 function greet(){const d=new Date(),h=d.getHours();$('#greet').textContent=(h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', sir';
  $('#dateLine').innerHTML=esc(d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}))+'<span class="tagl"> · One mind. One target.</span>'}
-const APPV='v80';$('#appVer').textContent=APPV;greet();showQuote();
+const APPV='v81';$('#appVer').textContent=APPV;greet();showQuote();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 render();
 
 // v71: read-only view for Focus topics and To do items (like PO); Edit opens the edit screen.
-function openEdit(id){const i=items.find(x=>x.id===id);if(i&&(i.list==='focus'||i.list==='todo'))openView(id);else editItem(id)}
+function openEdit(id){const i=items.find(x=>x.id===id);if(i&&(i.list==='focus'||i.list==='todo'||i.list==='del'||i.list==='pay'))openView(id);else editItem(id)}
 function openView(id){const i=items.find(x=>x.id===id);if(!i)return;let d=$('#tView');if(!d){d=document.createElement('dialog');d.id='tView';d.className='poed';document.body.appendChild(d);
   d.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(!b)return;const k=b.dataset.v,x=b.dataset.x;if(k==='close')d.close();else if(k==='edit'){d.close();editItem(x)}else if(k==='done'){d.close();toggleDone(x)}else if(k==='po'){d.close();openPO(x)}else if(k==='open')openView(x)})}
  const row=(n,v)=>`<div class="pdr"><small>${n}</small><div>${v||'<span class="pbl">—</span>'}</div></div>`;let h=`<div class="pdh">${esc(i.title)}</div>`;
  if(i.list==='focus'){const t=(i.tags||[]).find(x=>FTAGS.includes(x)),po=i.po&&items.find(p=>p.id===i.po),td=openIn('todo').filter(x=>x.topic===i.id).sort(todoSort);
   h+=`<div class="pdg">${row('Tag',t?tagChip(t):'')}${row('PO card',po?`<a class="fpo" data-v="po" data-x="${po.id}">${esc(po.title)} ›</a>`:'')}</div>
   <div class="jlab">To do</div>${td.map(x=>`<div class="ftd" data-v="open" data-x="${x.id}">${esc(x.title)}</div>`).join('')||'<div class="pbl">None linked</div>'}`}
- else{const tp=i.topic&&items.find(x=>x.id===i.topic&&x.list==='focus'),ss=subsOf(i);
+ else if(i.list==='todo'){const tp=i.topic&&items.find(x=>x.id===i.topic&&x.list==='focus'),ss=subsOf(i);
   h+=`<div class="pdg">${row('Important',i.important?'<span class="mki">Important</span>':'')}${row('Urgent',i.urgent?'<span class="mku">Urgent</span>':'')}${row('Due',i.due?`<span class="${isOver(i)?'od':''}">${esc(i.due)}${isOver(i)?' · overdue':''}</span>`:'')}${row('Focus topic',tp?`<a class="fpo" data-v="open" data-x="${tp.id}">${esc(tp.title)}</a>`:'')}</div>
   ${ss.length?`<div class="jlab">Sub-tasks</div>${ss.map(x=>`<div class="ftd">${x.done?'☑':'☐'} ${esc(x.t)}</div>`).join('')}`:''}${(i.notes||'').trim()?`<div class="jlab">Notes</div><div class="pdn">${esc(i.notes)}</div>`:''}`}
+ else{h+=stageRibbon(i,false)+((i.notes||'').trim()?`<div class="jlab">Notes</div><div class="pdn">${esc(i.notes)}</div>`:'')}
  h+=`<div class="btns"><button type="button" data-v="close">Close</button>${i.list==='todo'?`<button type="button" data-v="done" data-x="${i.id}">${i.done?'Undo done':'Done'}</button>`:''}<button type="button" class="primary" data-v="edit" data-x="${i.id}">Edit</button></div>`;
  d.innerHTML=h;if(!d.open)d.showModal()}

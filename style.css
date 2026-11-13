@@ -388,3 +388,19 @@ li.mc1::before,li.mc1::after{display:none!important}li.mc1:last-child{border-bot
 .hgc{min-height:0;width:22px;height:22px;padding:0;border-radius:6px;font-size:12px;font-weight:700;line-height:1;border:1px solid color-mix(in srgb,var(--c) 45%,transparent);background:transparent;color:#0a0f1f}
 .hgc.on{background:var(--c);border-color:transparent}
 .hgf{display:inline-block;width:22px;height:22px;border-radius:6px;border:1px dashed rgba(255,255,255,.08)}
+
+/* v81 stage ribbon */
+.srb{display:flex;gap:3px;align-items:center;width:100%}
+.srb i{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.12)}
+.srb i.done{background:rgba(95,123,255,.55)}
+.srb i.cur{background:#8f6bff;box-shadow:0 0 6px rgba(143,107,255,.55);height:7px}
+.srb.full{margin:8px 0 4px;gap:4px}
+.srb.full i{height:8px;border-radius:4px}
+.srb.full i.cur{height:10px}
+.src{display:flex;align-items:center;gap:8px;margin:6px 0 4px}
+.src .srb{flex:1;min-width:0}
+.src .srl{font-size:11px;font-weight:600;color:#a9c1ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none;max-width:48%}
+.srv .srl{font-size:12px;font-weight:600;color:#a9c1ff;margin-bottom:2px}
+.srnx{font-size:.85em;margin:4px 0 8px;opacity:.9}
+.srnx.hint{opacity:.5;font-style:italic}
+#eStage{margin:6px 0}
