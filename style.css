@@ -424,3 +424,6 @@ li.mc1::before,li.mc1::after{display:none!important}li.mc1:last-child{border-bot
 .bizn{margin:8px 10px;color:var(--mut);font-style:italic;display:flex;gap:6px;align-items:flex-start}
 .bizn:before{content:"> ";font-style:normal;opacity:.7}
 .bizn .bizt{font-weight:400}
+
+/* v85 focus type/status */
+.ftop .bizm{margin-top:8px;padding-left:0}

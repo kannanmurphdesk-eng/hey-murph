@@ -9,7 +9,7 @@ const dmon=d=>d?new Date(d.slice(0,7)+'-01T00:00').toLocaleString('en-US',{month
 let fview='po';
 const VIS=['focus','todo','cold'];
 let items=load(),view='focus',tview='focus',hview='habits',jview='journal';
-const SEG=v=>v==='habits'?'habits':'tasks';
+const SEG=v=>v==='customers'?'customers':v==='habits'?'habits':'tasks';
 const TSEG=['focus','todo','cold'],TSL={focus:'Focus',todo:'To do',cold:'Cold Storage'};
 const $=s=>document.querySelector(s);
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
@@ -25,12 +25,13 @@ const subsOf=o=>{const a=Array.isArray(o.subs)?o.subs:Array.isArray(o.subtasks)?
 function mk(title,list,o={}){return{id:uid(),title:title.trim(),list,tags:(o.tags||[]).filter(t=>TAGS.includes(t)),due:o.due||'',customer:(o.customer||'').trim(),top:!!o.top&&list==='focus',done:!!o.done,created:Date.now(),doneAt:o.done?Date.now():null,...(subsOf(o).length?{subs:subsOf(o)}:{}),...(o.important?{important:true}:{}),...(o.urgent?{urgent:true}:{}),...(o.topic?{topic:String(o.topic)}:{}),...(o.cm?{cm:String(o.cm)}:{}),...(o.month?{month:String(o.month)}:{})}}
 function add(title,list){if(!title.trim())return false;if(!canIn(list))return false;items.push(mk(title,list));save();render();return true}
 function move(id,to){const i=items.find(x=>x.id===id);if(i&&i.list==='focus'&&!i.done&&to!=='focus')return render();if(!to||to===i.list||!canIn(to))return render();i.list=to;if(to!=='focus')i.top=false;save();render()}
-function toggleDone(id){const i=items.find(x=>x.id===id);if(i.done&&!canIn(i.list))return;i.done=!i.done;i.doneAt=i.done?Date.now():null;if(i.done)i.top=false;save();render()}
+function toggleDone(id){const i=items.find(x=>x.id===id);if(i.done&&!canIn(i.list))return;i.done=!i.done;i.doneAt=i.done?Date.now():null;if(i.done)i.top=false;if(i.list==='focus')i.status=i.done?'Done':'Yet to start';save();render()}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 // v81: 11-stage ribbon for Flow items (po, del, pay). item.stage stays free text until a listed stage is picked.
 // v82: read-only Business Journal view (Journal sub-tab).
 // v83: editable Business Journal; original journal sub-tab labelled Quick capture.
 // v84: UI shows only Focus, To do, Cold storage and a minimal Habits tick/log. Hidden lists and journals stay in the data and sync.
+// v85: Focus type/status dropdowns; Customers (Customer Universe) tab restored.
 const STAGES=['Cold calls','Customer inquiry / Product pitch','Data sheet submission','Technical review','Quote submission','Purchase process','Negotiations','PO issuance','Delivery','Installation','Payment'];
 const stageIdx=s=>STAGES.indexOf(String(s||'').trim());
 const stageListOf=s=>{const i=stageIdx(s);return i<0?null:i<=7?'po':i<=9?'del':'pay'};
@@ -73,11 +74,11 @@ const todoRank=i=>(isOver(i)?0:10)+(i.important&&i.urgent?0:i.important?1:i.urge
 const todoSort=(a,b)=>todoRank(a)-todoRank(b)||(a.due||'9999').localeCompare(b.due||'9999')||a.created-b.created;
 function render(){
  legacyMove();v65mig();v73merge();v79drop();if(typeof fmigrate==='function')fmigrate();
- if(!VIS.includes(view)&&view!=='habits')view='focus';
+ if(!VIS.includes(view)&&view!=='habits'&&view!=='customers')view='focus';
  const flv=false;
  const sg=SEG(view);if(sg==='tasks')tview=view;else if(sg==='habits')hview=view;
  const hv=sg!=='tasks';
- $('#home').hidden=true;$('#journal').hidden=true;$('#biz').hidden=true;$('#travel').hidden=true;$('#customers').hidden=true;$('#flow').hidden=true;
+ $('#home').hidden=true;$('#journal').hidden=true;$('#biz').hidden=true;$('#travel').hidden=true;$('#flow').hidden=true;
  $('#habits').hidden=view!=='habits';['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();
  const fv=CAPPED.includes(view);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
  const sb=$('#sub');sb.hidden=true;sb.innerHTML='';
@@ -105,15 +106,25 @@ function mcPO(i){const f=i.list==='focus'?i:i.topic&&items.find(x=>x.id===i.topi
 function mcEndUser(i){if(i.eu)return i.eu;const po=mcPO(i);if(po&&po.eu)return po.eu;if(i.list==='todo')return mcEU(i.title);const t=openIn('todo').find(x=>x.topic===i.id);return t&&mcEU(t.title)||po&&mcEU(po.title)||''}
 function mcLine(i){const po=mcPO(i),pr=po&&mcKnown(po.principal),md=po&&mcKnown(String(po.model||'').replace(/\s*\([^)]*\)/g,'').trim()),eu=mcEndUser(i);
  return {pr:[pr,md].filter(Boolean).join(' · '),eu}}
+const FTYPE=['Damage control','PDC','NS'],FTYPEC={'Damage control':'#ff6b5e',PDC:'#ffb547',NS:'#a66bff'};
+const FSTAT=['Yet to start','In progress','Done'],FSTATC={'Yet to start':'#8aa0c8','In progress':'#ffb547',Done:'#3ddc84'};
+const TAG2FTYPE={'damage control':'Damage control','preventive damage control':'PDC','necessary task':'NS'};
+function focusType(i){if(FTYPE.includes(i.taskType))return i.taskType;const t=(i.tags||[]).find(x=>TAG2FTYPE[x]);return t?TAG2FTYPE[t]:''}
+function focusStatus(i){if(i.done||i.status==='Done')return'Done';return FSTAT.includes(i.status)?i.status:'Yet to start'}
+function fsel(opts,cur,empty){return(empty!==undefined?`<option value="">${empty}</option>`:'')+opts.map(o=>`<option value="${esc(o)}"${o===cur?' selected':''}>${esc(o)}</option>`).join('')}
+function patchFocus(id,patch){const i=items.find(x=>x.id===id);if(!i)return;
+ if('taskType' in patch)i.taskType=patch.taskType;
+ if('status' in patch){i.status=patch.status;if(i.status==='Done'){if(!i.done){i.done=true;i.doneAt=Date.now()}i.top=false}else if(i.done){i.done=false;i.doneAt=null}}
+ i.updatedAt=Date.now();save();render()}
 function topicRow(i){const eu=mcEndUser(i),tg=(i.tags||[]).find(x=>FTAGS.includes(x)),t=(i.title||'').trim();
-  const full=eu&&!t.toLowerCase().includes(eu.toLowerCase())?t+' - '+eu:t;
-  return `<li class="ftop mc mc1" data-id="${i.id}"><div class="body" data-a="edit"><div class="mcr">${tg?`<span class="mdot" title="${esc(tg)}"></span>`:''}<b>${esc(full)}</b></div></div></li>`}
+  const full=eu&&!t.toLowerCase().includes(eu.toLowerCase())?t+' - '+eu:t,ty=focusType(i),st=focusStatus(i);
+  return `<li class="ftop mc mc1" data-id="${i.id}"><div class="body" data-a="edit"><div class="mcr">${tg?`<span class="mdot" title="${esc(tg)}"></span>`:''}<b>${esc(full)}</b></div></div><div class="bizm"><select data-ff="taskType" aria-label="Task type" style="--c:${FTYPEC[ty]||'#8aa0c8'}">${fsel(FTYPE,ty,'None')}</select><select data-ff="status" aria-label="Status" style="--c:${FSTATC[st]||'#8aa0c8'}">${fsel(FSTAT,st)}</select></div></li>`}
 function todoRow(i){const {pr,eu}=mcLine(i),p=(i.title||'').split(' - '),act=p.length>2?p.slice(1,-1).join(' - '):p.slice(1).join(' - ');
  return `<li class="tdo mc" data-id="${i.id}" style="--stripe:${i.important&&i.urgent?'#ff6b5e':i.important?'#ffb547':i.urgent?'#ff4fb4':'#8f6bff'}"><button class="chk${i.done?' on':''}" data-a="done" aria-label="${i.done?'Undo':'Done'}">${i.done?'✓':''}</button><div class="body" data-a="edit"><div class="mcr"><b>${esc(mcCust(i))}</b>${pr?`<i></i><span>${esc(pr)}</span>`:''}</div>${act?`<div class="mca">${esc(act)}</div>`:''}<div class="mcs">${eu?'👤 '+esc(eu)+' ':''}${i.important?'<span class="mki">Important</span>':''}${i.urgent?'<span class="mku">Urgent</span>':''}${i.due?`<span class="${isOver(i)?'od':''}">📅 ${i.due}${isOver(i)?' · overdue':''}</span>`:''}</div></div></li>`}
 function renderTodo(){const L=openIn('todo').sort(todoSort);$('#list').innerHTML=L.map(todoRow).join('')||'<li class="empty">Nothing to do. Clear skies.</li>'}
-$('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.dataset.tid||a.closest('li').dataset.id;
+$('#list').addEventListener('click',e=>{if(e.target.closest('[data-ff]')){e.stopPropagation();return}const a=e.target.closest('[data-a]');if(!a)return;const id=a.dataset.tid||a.closest('li').dataset.id;
  if(a.dataset.a==='po'){return}if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else if(a.dataset.a==='insight')openInsight(id);else openEdit(id)});
-$('#list').addEventListener('change',e=>{const s=e.target.closest('[data-mv]');if(s)move(s.closest('li').dataset.id,s.value)});
+$('#list').addEventListener('change',e=>{const s=e.target.closest('[data-mv]');if(s){move(s.closest('li').dataset.id,s.value);return}const f=e.target.closest('[data-ff]'),row=e.target.closest('[data-id]');if(f&&row){const p={};p[f.dataset.ff]=f.value;patchFocus(row.dataset.id,p)}});
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){view=b.dataset.v;render();scrollTo(0,0)}});
 $('#sub').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(b){view=b.dataset.s;render()}});
 $('#tagFilter').onchange=render;
@@ -230,7 +241,7 @@ function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote()}
 $('#quote').addEventListener('click',nextQuote);$('#quote').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();nextQuote()}});
 function greet(){const d=new Date(),h=d.getHours();$('#greet').textContent=(h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', sir';
  $('#dateLine').innerHTML=esc(d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}))+'<span class="tagl"> · One mind. One target.</span>'}
-const APPV='v84';$('#appVer').textContent=APPV;greet();showQuote();
+const APPV='v85';$('#appVer').textContent=APPV;greet();showQuote();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 render();
