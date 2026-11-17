@@ -7,8 +7,8 @@ const LN={focus:'Focus',todo:'To do',cold:'Cold Storage',po:'PO funnel',del:'Del
 const fmon=m=>{if(!m)return'';const[y,mo]=m.split('-');return new Date(+y,+mo-1,1).toLocaleString('en-IN',{month:'short',year:'numeric'})};
 const dmon=d=>d?new Date(d.slice(0,7)+'-01T00:00').toLocaleString('en-US',{month:'short',year:'numeric'}):'',fcm=v=>v?'₹'+(+v).toLocaleString('en-IN',{maximumFractionDigits:2})+' L':'';
 let fview='po';
-let items=load(),view='home',tview='focus',hview='habits';
-const SEG=v=>v==='home'?'home':v==='customers'?'customers':v==='journal'?'journal':(v==='habits'||v==='travel')?'habits':'tasks';
+let items=load(),view='home',tview='focus',hview='habits',jview='journal';
+const SEG=v=>v==='home'?'home':v==='customers'?'customers':(v==='journal'||v==='biz')?'journal':(v==='habits'||v==='travel')?'habits':'tasks';
 const TSEG=['focus','todo','cold','po','del','pay','done'],TSL={focus:'Focus',todo:'To do',cold:'Cold',po:'PO',del:'Delivery',pay:'Payment',done:'Done'};
 const $=s=>document.querySelector(s);
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
@@ -27,6 +27,7 @@ function move(id,to){const i=items.find(x=>x.id===id);if(i&&i.list==='focus'&&!i
 function toggleDone(id){const i=items.find(x=>x.id===id);if(i.done&&!canIn(i.list))return;i.done=!i.done;i.doneAt=i.done?Date.now():null;if(i.done)i.top=false;save();render()}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 // v81: 11-stage ribbon for Flow items (po, del, pay). item.stage stays free text until a listed stage is picked.
+// v82: read-only Business Journal view (Journal sub-tab).
 const STAGES=['Cold calls','Customer inquiry / Product pitch','Data sheet submission','Technical review','Quote submission','Purchase process','Negotiations','PO issuance','Delivery','Installation','Payment'];
 const stageIdx=s=>STAGES.indexOf(String(s||'').trim());
 const stageListOf=s=>{const i=stageIdx(s);return i<0?null:i<=7?'po':i<=9?'del':'pay'};
@@ -70,11 +71,11 @@ const todoSort=(a,b)=>todoRank(a)-todoRank(b)||(a.due||'9999').localeCompare(b.d
 function render(){
  legacyMove();v65mig();v73merge();v79drop();if(typeof fmigrate==='function')fmigrate();
  if(view==='flow')view=fview;const flv=FLOWV.includes(view);if(flv)fview=view;
- const sg=SEG(view);if(sg==='tasks')tview=view;else if(sg==='habits')hview=view;
- const hv=sg!=='tasks';$('#home').hidden=view!=='home';if(view==='home'&&typeof renderHome==='function')renderHome();$('#habits').hidden=view!=='habits';$('#travel').hidden=view!=='travel';if(view==='travel'&&typeof renderTravel==='function')renderTravel();$('#journal').hidden=view!=='journal';$('#flow').hidden=!flv;if(flv&&typeof renderFlow==='function')renderFlow();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
+ const sg=SEG(view);if(sg==='tasks')tview=view;else if(sg==='habits')hview=view;else if(sg==='journal')jview=view;
+ const hv=sg!=='tasks';$('#home').hidden=view!=='home';if(view==='home'&&typeof renderHome==='function')renderHome();$('#habits').hidden=view!=='habits';$('#travel').hidden=view!=='travel';if(view==='travel'&&typeof renderTravel==='function')renderTravel();$('#journal').hidden=view!=='journal';$('#biz').hidden=view!=='biz';if(view==='biz'&&typeof renderBiz==='function')renderBiz();$('#flow').hidden=!flv;if(flv&&typeof renderFlow==='function')renderFlow();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
  const fv=CAPPED.includes(view);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===sg));
- const sb=$('#sub');sb.hidden=sg!=='tasks'&&sg!=='habits';sb.classList.toggle('two',sg==='habits');
- sb.innerHTML=sg==='tasks'?TSEG.map(l=>`<button data-s="${l}" class="${view===l?'on':''}">${TSL[l]} <small>${l==='done'?items.filter(i=>i.done).length:CAPPED.includes(l)?openIn(l).length+'/'+CAP:openIn(l).length}</small></button>`).join(''):sg==='habits'?[['habits','🔥 Habits'],['travel','🧳 Travel']].map(([k,n])=>`<button data-s="${k}" class="${view===k?'on':''}">${n}</button>`).join(''):'';
+ const sb=$('#sub');sb.hidden=sg!=='tasks'&&sg!=='habits'&&sg!=='journal';sb.classList.toggle('two',sg==='habits'||sg==='journal');
+ sb.innerHTML=sg==='tasks'?TSEG.map(l=>`<button data-s="${l}" class="${view===l?'on':''}">${TSL[l]} <small>${l==='done'?items.filter(i=>i.done).length:CAPPED.includes(l)?openIn(l).length+'/'+CAP:openIn(l).length}</small></button>`).join(''):sg==='habits'?[['habits','🔥 Habits'],['travel','🧳 Travel']].map(([k,n])=>`<button data-s="${k}" class="${view===k?'on':''}">${n}</button>`).join(''):sg==='journal'?[['journal','📓 Journal'],['biz','📒 Business']].map(([k,n])=>`<button data-s="${k}" class="${view===k?'on':''}">${n}</button>`).join(''):'';
  const so=sb.querySelector('.on');if(so&&(so.offsetLeft<sb.scrollLeft||so.offsetLeft+so.offsetWidth>sb.scrollLeft+sb.clientWidth))sb.scrollLeft=so.offsetLeft-12;
  const tf=$('#tagFilter').value;
  let L=hv?[]:view==='done'?items.filter(i=>i.done):openIn(view);
@@ -108,7 +109,7 @@ function renderTodo(){const L=openIn('todo').sort(todoSort);$('#list').innerHTML
 $('#list').addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const id=a.dataset.tid||a.closest('li').dataset.id;
  if(a.dataset.a==='po'){openPO(a.dataset.pid);return}if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else if(a.dataset.a==='insight')openInsight(id);else openEdit(id)});
 $('#list').addEventListener('change',e=>{const s=e.target.closest('[data-mv]');if(s)move(s.closest('li').dataset.id,s.value)});
-$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){const v=b.dataset.v;view=v==='tasks'?tview:v==='habits'?hview:v;render();scrollTo(0,0)}});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){const v=b.dataset.v;view=v==='tasks'?tview:v==='habits'?hview:v==='journal'?jview:v;render();scrollTo(0,0)}});
 $('#sub').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(b){view=b.dataset.s;render()}});
 $('#tagFilter').onchange=render;
 $('#tagFilter').innerHTML+=TAGS.map(t=>`<option>${t}</option>`).join('');
@@ -204,11 +205,11 @@ async function share(name,text,type){const file=new File([text],name,{type});
 $('#menuBtn').onclick=()=>$('#menu').showModal();
 $('#menu').addEventListener('close',()=>{const r=$('#menu').returnValue,d=today();
  if(r==='md')share(`hey-murph-${d}.md`,toMd(),'text/markdown');
- if(r==='json')share(`hey-murph-backup-${d}.json`,JSON.stringify({app:'hey-murph',version:1,exported:new Date().toISOString(),items,habits:H,journal:typeof J!=='undefined'?J:[],flow:typeof F!=='undefined'?F:[],meta:typeof META!=='undefined'?META:undefined},null,1),'application/json');
+ if(r==='json')share(`hey-murph-backup-${d}.json`,JSON.stringify({app:'hey-murph',version:1,exported:new Date().toISOString(),items,habits:H,journal:typeof J!=='undefined'?J:[],flow:typeof F!=='undefined'?F:[],meta:typeof META!=='undefined'?META:undefined,businessJournal:typeof BJ!=='undefined'?BJ:[]},null,1),'application/json');
  if(r==='importJson')$('#fileIn').click();if(r==='importMd'){$('#pasteText').value='';$('#paste').showModal()}});
 $('#paste').addEventListener('close',()=>{if($('#paste').returnValue==='ok'){const n=parseMd($('#pasteText').value);n.length?merge(n):toast('No items found in Markdown.')}});
 $('#fileIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const d=JSON.parse(await f.text());const arr=Array.isArray(d)?d:d.items;if(!Array.isArray(arr))throw 0;
- if(!confirm(`Replace all current data with ${arr.length} items from backup?`))return;items=arr.map(x=>Object.assign(mk(x.title||'',LN[x.list]?x.list:'focus',x),{id:x.id||uid(),created:x.created||Date.now(),doneAt:x.doneAt||null},Array.isArray(x.subs)?{subs:x.subs}:{},x.cm?{cm:x.cm}:{},x.month?{month:x.month}:{},x.notes?{notes:String(x.notes)}:{},x.jid?{jid:x.jid}:{}));if(d&&Array.isArray(d.journal)&&typeof jImport==='function')jImport(d.journal);if(d&&d.habits&&Array.isArray(d.habits.habits)){H=d.habits;hsave()}if(d&&d.meta&&typeof META!=='undefined'){META=d.meta;msave()}if(d&&Array.isArray(d.flow)&&typeof F!=='undefined'){F=d.flow;fsave()}save();render();toast('Backup restored')}catch(_){toast('Not a valid Hey Murph backup.')}};
+ if(!confirm(`Replace all current data with ${arr.length} items from backup?`))return;items=arr.map(x=>Object.assign(mk(x.title||'',LN[x.list]?x.list:'focus',x),{id:x.id||uid(),created:x.created||Date.now(),doneAt:x.doneAt||null},Array.isArray(x.subs)?{subs:x.subs}:{},x.cm?{cm:x.cm}:{},x.month?{month:x.month}:{},x.notes?{notes:String(x.notes)}:{},x.jid?{jid:x.jid}:{}));if(d&&Array.isArray(d.journal)&&typeof jImport==='function')jImport(d.journal);if(d&&d.habits&&Array.isArray(d.habits.habits)){H=d.habits;hsave()}if(d&&d.meta&&typeof META!=='undefined'){META=d.meta;msave()}if(d&&Array.isArray(d.flow)&&typeof F!=='undefined'){F=d.flow;fsave()}if(d&&Array.isArray(d.businessJournal)&&typeof bjImport==='function')bjImport(d.businessJournal);save();render();toast('Backup restored')}catch(_){toast('Not a valid Hey Murph backup.')}};
 const QUOTES=[
 "Life is a trade-off. Choose what you trade, and what you get for it. Trade wisely.",
 "Your focus is like a boat with only ten seats. Choose who sits there carefully.",
@@ -226,7 +227,7 @@ function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote()}
 $('#quote').addEventListener('click',nextQuote);$('#quote').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();nextQuote()}});
 function greet(){const d=new Date(),h=d.getHours();$('#greet').textContent=(h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', sir';
  $('#dateLine').innerHTML=esc(d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}))+'<span class="tagl"> · One mind. One target.</span>'}
-const APPV='v81';$('#appVer').textContent=APPV;greet();showQuote();
+const APPV='v82';$('#appVer').textContent=APPV;greet();showQuote();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 render();

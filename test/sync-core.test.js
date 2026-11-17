@@ -24,3 +24,17 @@ test('meta (lastReviewAt) newest updatedAt wins and affects sameDoc',()=>{const 
  const R={items:[],journal:[],habits:{habits:[],updatedAt:0},meta:{lastReviewAt:200,updatedAt:200}};
  assert.equal(C.mergeDoc(L,R).meta.lastReviewAt,200);assert.equal(C.mergeDoc(R,L).meta.lastReviewAt,200);
  assert.equal(C.mergeDoc({items:[],journal:[]},{}).meta.lastReviewAt,0);assert.ok(!C.sameDoc(L,R))});
+
+test('mergeDoc keeps businessJournal and does not strip it',()=>{
+ const e=[{date:'2026-11-17',text:'Share Atmos 51',tag:'',status:'Yet to start',done:false}];
+ const L={items:[],journal:[],habits:{habits:[],updatedAt:0},businessJournal:e,updatedAt:10};
+ const R={items:[],journal:[],habits:{habits:[],updatedAt:0},updatedAt:5};
+ const m=C.mergeDoc(L,R);assert.deepEqual(m.businessJournal,e);
+ const m2=C.mergeDoc({items:[],journal:[],habits:{habits:[],updatedAt:0}}, {items:[],journal:[],businessJournal:e,updatedAt:20});
+ assert.deepEqual(m2.businessJournal,e);
+ const other=[{date:'2026-11-14',text:'Older',tag:'',status:'Yet to start',done:false}];
+ const m3=C.mergeDoc({items:[],journal:[],businessJournal:e,updatedAt:1},{items:[],journal:[],businessJournal:other,updatedAt:9});
+ assert.deepEqual(m3.businessJournal,other);
+ assert.ok(!C.sameDoc(m,Object.assign({},m,{businessJournal:[]})));
+ assert.ok(C.sameDoc(m,C.mergeDoc(m,m)));
+});

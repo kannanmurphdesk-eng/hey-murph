@@ -27,13 +27,15 @@ function mergeHabits(l,r){if(!r||!Array.isArray(r.habits))return l;if(!l||!Array
   hs.push(Object.assign({},base,extra,{days,ts},Object.keys(log).length?{log}:{}))}
  return{habits:hs,updatedAt:Math.max(l.updatedAt||0,r.updatedAt||0)}}
 function mergeObj(l,r){if(!r)return l;if(!l)return r;return(r.updatedAt||0)>(l.updatedAt||0)?r:l}
+// Business Journal is a dated array (no ids). Keep whichever side has entries; if both differ, newer doc wins.
+function mergeBiz(l,r,lAt,rAt){const A=Array.isArray(l)?l:[],B=Array.isArray(r)?r:[];if(!B.length)return A;if(!A.length)return B;if(JSON.stringify(A)===JSON.stringify(B))return A;return(rAt||0)>(lAt||0)?B:A}
 const withTombs=(arr,tombs)=>arr.concat(Object.keys(tombs).filter(id=>!arr.some(x=>x.id===id)).map(id=>({id,deleted:true,updatedAt:tombs[id]})));
 const split=list=>({live:list.filter(x=>!x.deleted),tombs:Object.fromEntries(list.filter(x=>x.deleted).map(x=>[x.id,x.updatedAt||0]))});
-// Full doc merge. Doc = {items, habits, journal, updatedAt}
-function mergeDoc(L,R){R=R||{};const items=mergeList(L.items,R.items),journal=mergeList(L.journal,R.journal),flow=mergeList(L.flow,R.flow),habits=mergeHabits(L.habits,R.habits),meta=mergeObj(L.meta,R.meta);
+// Full doc merge. Doc = {items, habits, journal, flow, meta, businessJournal, updatedAt}
+function mergeDoc(L,R){R=R||{};const items=mergeList(L.items,R.items),journal=mergeList(L.journal,R.journal),flow=mergeList(L.flow,R.flow),habits=mergeHabits(L.habits,R.habits),meta=mergeObj(L.meta,R.meta),businessJournal=mergeBiz(L.businessJournal,R.businessJournal,L.updatedAt,R.updatedAt);
  const ts=[...items,...journal,...flow].map(x=>x.updatedAt||0).concat((habits&&habits.updatedAt)||0,(meta&&meta.updatedAt)||0,R.updatedAt||0,L.updatedAt||0);
- return{app:'hey-murph',version:2,updatedAt:Math.max(...ts),items,habits,journal,flow,meta:meta||{lastReviewAt:0,updatedAt:0}}}
+ return{app:'hey-murph',version:2,updatedAt:Math.max(...ts),items,habits,journal,flow,meta:meta||{lastReviewAt:0,updatedAt:0},businessJournal}}
 function sameDoc(a,b){if(!a||!b)return false;const sig=l=>JSON.stringify((l||[]).map(x=>[x.id,x.updatedAt||0,!!x.deleted]).sort());
- return sig(a.items)===sig(b.items)&&sig(a.journal)===sig(b.journal)&&sig(a.flow)===sig(b.flow)&&JSON.stringify(a.habits||{})===JSON.stringify(b.habits||{})&&((a.meta||{}).updatedAt||0)===((b.meta||{}).updatedAt||0)}
-const api={mergeHabits,sameDoc,hashOf,stampList,stampObj,mergeList,mergeObj,mergeDoc,withTombs,split};
+ return sig(a.items)===sig(b.items)&&sig(a.journal)===sig(b.journal)&&sig(a.flow)===sig(b.flow)&&JSON.stringify(a.habits||{})===JSON.stringify(b.habits||{})&&((a.meta||{}).updatedAt||0)===((b.meta||{}).updatedAt||0)&&JSON.stringify(a.businessJournal||[])===JSON.stringify(b.businessJournal||[])}
+const api={mergeHabits,sameDoc,hashOf,stampList,stampObj,mergeList,mergeObj,mergeBiz,mergeDoc,withTombs,split};
 if(typeof module!=='undefined')module.exports=api;else root.SyncCore=api})(this);
