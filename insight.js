@@ -9,7 +9,7 @@ function saveInsight(t,text){const now=Date.now();
 function openInsight(id){INS={queue:[id],i:0,mode:'one',saved:0};insDraw();$('#insSheet').showModal()}
 function startCapture(){const q=insQueue();if(!q.length)return toast('No recent done tasks without an insight 🎉');INS={queue:q,i:0,mode:'step',saved:0};insDraw();$('#insSheet').showModal()}
 function insDraw(){const b=$('#insBody'),N=INS.queue.length,t=items.find(x=>x.id===INS.queue[INS.i]);
- if(!t){b.innerHTML=`<div class="rvtop"><div class="rvh">💡 Insights</div><button data-i="close" class="x">✕</button></div><p>${INS.saved} insight${INS.saved===1?'':'s'} saved to Journal → Notes.</p><div class="btns"><button data-i="close" class="primary">Done</button></div>`;return}
+ if(!t){b.innerHTML=`<div class="rvtop"><div class="rvh">💡 Insights</div><button data-i="close" class="x">✕</button></div><p>${INS.saved} insight${INS.saved===1?'':'s'} saved to Quick capture → Notes.</p><div class="btns"><button data-i="close" class="primary">Done</button></div>`;return}
  const prev=J.filter(e=>e.type==='Insight'&&e.tid===t.id);
  b.innerHTML=`<div class="rvtop"><div class="rvh">💡 Insight</div><button data-i="close" class="x" aria-label="Close">✕</button></div>
  ${INS.mode==='step'?`<div class="rvprog"><span>${INS.i+1} of ${N} recently done</span><div class="rvbar"><i style="width:${Math.round(INS.i/N*100)}%"></i></div></div>`:''}

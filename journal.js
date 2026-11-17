@@ -22,12 +22,12 @@ function renderJournal(){const c=k=>J.filter(e=>k==='all'||(k==='notes'?e.exec&&
  const box=$('#journal');if(!box.dataset.init){box.dataset.init=1;box.innerHTML=`
  <form id="jrec" class="jcard"><textarea id="jtext" rows="4" placeholder="Record a thought… (auto-stamped)"></textarea>
  <input type="hidden" id="jtype"><div class="jrow"><button class="primary">Save</button></div></form>
- <div id="jfilt"></div><div class="jrow"><input id="jsearch" type="search" placeholder="Search journal…"><button id="jmd" type="button">Export MD</button></div><div id="jlist"></div>`;
+ <div id="jfilt"></div><div class="jrow"><input id="jsearch" type="search" placeholder="Search quick capture…"><button id="jmd" type="button">Export MD</button></div><div id="jlist"></div>`;
   $('#jrec').onsubmit=e=>{e.preventDefault();const t=$('#jtext').value.trim();if(!t)return;J.push(jnorm({text:t,type:$('#jtype').value}));jsave();$('#jtext').value='';$('#jtype').value='';toast('Recorded '+jtime(Date.now()));if(jf!=='inbox'&&jf!=='all')jf='inbox';renderJournal()};
   $('#jsearch').oninput=e=>{jq=e.target.value.trim();renderJournal()};
   $('#jfilt').onclick=e=>{const b=e.target.closest('[data-jf]');if(b){jf=b.dataset.jf;renderJournal()}};
   $('#jlist').onclick=e=>{const cv=e.target.closest('[data-jconv]');if(cv){e.stopPropagation();const id=cv.closest('[data-jid]').dataset.jid;cv.dataset.jconv==='task'?jtoTask(id):jtoNote(id);return}const b=e.target.closest('[data-jid]');if(b)jopen(b.dataset.jid)};
-  $('#jmd').onclick=()=>{const all=confirm('Export ALL journal entries?\nOK = all, Cancel = current filter ('+JF[jf]+(jq?', search':'')+')');share(`hey-murph-journal-${today()}.md`,jmd(all?[...J].sort((a,b)=>b.created-a.created):jlist(),all?'All':JF[jf]),'text/markdown')}}
+  $('#jmd').onclick=()=>{const all=confirm('Export ALL Quick capture entries?\nOK = all, Cancel = current filter ('+JF[jf]+(jq?', search':'')+')');share(`hey-murph-journal-${today()}.md`,jmd(all?[...J].sort((a,b)=>b.created-a.created):jlist(),all?'All':JF[jf]),'text/markdown')}}
  $('#jfilt').innerHTML=Object.entries(JF).map(([k,n])=>`<button data-jf="${k}" class="s-${k}${jf===k?' on':''}">${n}<i>${c(k)}</i></button>`).join('');
  const L=jlist();let html='',day='';
  for(const e of L){const d=jday(e.created);if(d!==day){day=d;html+=`<h3 class="jday">${new Date(e.created).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'})}</h3>`}
@@ -50,7 +50,7 @@ $('#jform').addEventListener('input',jprev);
 $('#jform').addEventListener('click',e=>{const a=e.target.closest('[data-j]');if(!a)return;e.preventDefault();const k=a.dataset.j;
  if(k==='b')jwrap('**');else if(k==='h')jwrap('==');else if(k==='proc'){jcommit();jcur.stage='processed';jcur.processedAt=Date.now();jsave();jprev();toast('Reviewed');render()}
  else if(k==='unproc'){jcommit();jcur.stage='record';jsave();jprev()}
- if(k==='jdel'){if(confirm('Delete this journal entry?')){J=J.filter(x=>x!==jcur);jsave();$('#jedit').close('x');render()}}else if(DEST[k])jexec(k);
+ if(k==='jdel'){if(confirm('Delete this Quick capture entry?')){J=J.filter(x=>x!==jcur);jsave();$('#jedit').close('x');render()}}else if(DEST[k])jexec(k);
  else if(k==='save'){jcommit();jsave();$('#jedit').close('x');render()}else if(k==='cancel')$('#jedit').close('x')});
 function jImport(arr){if(!Array.isArray(arr))return;J=arr.map(jnorm);jsave()}
 $('#jform').addEventListener('submit',e=>e.preventDefault());
@@ -62,10 +62,10 @@ function jtoTask(id){const e=J.find(x=>x.id===id);if(!e)return;let d=$('#jtodlg'
  if(!d){d=document.createElement('dialog');d.id='jtodlg';document.body.appendChild(d);
   d.addEventListener('click',ev=>{const b=ev.target.closest('[data-jl]');if(ev.target===d||(b&&b.dataset.jl==='x')){d.close();return}if(!b)return;
    const l=b.dataset.jl,je=J.find(x=>x.id===d.dataset.jid);if(!je||!canIn(l))return;const{title,rest}=jsplit(je);const t=mk(title,l,{customer:je.customer});
-   if(rest)t.notes=rest;t.jid=je.id;items.push(t);save();je.exec={dest:l,at:Date.now(),taskId:t.id};jsave();d.close();toast('Task added to '+LN[l]+' (journal entry kept)');render()})}
+   if(rest)t.notes=rest;t.jid=je.id;items.push(t);save();je.exec={dest:l,at:Date.now(),taskId:t.id};jsave();d.close();toast('Task added to '+LN[l]+' (Quick capture entry kept)');render()})}
  d.dataset.jid=id;const{title}=jsplit(e);
  d.innerHTML=`<div class="jlab">Copy to task</div><div class="jess">${esc(title)}</div><div class="jrow jconv">${Object.keys(LN).map(l=>`<button type="button" data-jl="${l}" class="${l==='cold'?'primary':''}">→ ${LN[l]}${CAPPED.includes(l)?' ('+openIn(l).length+'/'+CAP+')':''}</button>`).join('')}</div><div class="btns"><button type="button" data-jl="x">Cancel</button></div>`;
  d.showModal()}
 function jtoNote(id){const e=J.find(x=>x.id===id);if(!e)return;if(e.exec&&e.exec.dest==='notes'){toast('Already in Notes');return}
  if(e.exec&&!confirm('Already sent to '+DEST[e.exec.dest]+' (that task stays). Also mark as Note?'))return;
- e.exec={dest:'notes',at:Date.now()};if(e.stage!=='processed'){e.stage='processed';e.processedAt=Date.now()}jsave();toast('Added to Journal → Notes');render()}
+ e.exec={dest:'notes',at:Date.now()};if(e.stage!=='processed'){e.stage='processed';e.processedAt=Date.now()}jsave();toast('Added to Quick capture → Notes');render()}

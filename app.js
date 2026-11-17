@@ -28,6 +28,7 @@ function toggleDone(id){const i=items.find(x=>x.id===id);if(i.done&&!canIn(i.lis
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 // v81: 11-stage ribbon for Flow items (po, del, pay). item.stage stays free text until a listed stage is picked.
 // v82: read-only Business Journal view (Journal sub-tab).
+// v83: editable Business Journal; original journal sub-tab labelled Quick capture.
 const STAGES=['Cold calls','Customer inquiry / Product pitch','Data sheet submission','Technical review','Quote submission','Purchase process','Negotiations','PO issuance','Delivery','Installation','Payment'];
 const stageIdx=s=>STAGES.indexOf(String(s||'').trim());
 const stageListOf=s=>{const i=stageIdx(s);return i<0?null:i<=7?'po':i<=9?'del':'pay'};
@@ -75,7 +76,7 @@ function render(){
  const hv=sg!=='tasks';$('#home').hidden=view!=='home';if(view==='home'&&typeof renderHome==='function')renderHome();$('#habits').hidden=view!=='habits';$('#travel').hidden=view!=='travel';if(view==='travel'&&typeof renderTravel==='function')renderTravel();$('#journal').hidden=view!=='journal';$('#biz').hidden=view!=='biz';if(view==='biz'&&typeof renderBiz==='function')renderBiz();$('#flow').hidden=!flv;if(flv&&typeof renderFlow==='function')renderFlow();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();if(view==='journal'&&typeof renderJournal==='function')renderJournal();
  const fv=CAPPED.includes(view);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===sg));
  const sb=$('#sub');sb.hidden=sg!=='tasks'&&sg!=='habits'&&sg!=='journal';sb.classList.toggle('two',sg==='habits'||sg==='journal');
- sb.innerHTML=sg==='tasks'?TSEG.map(l=>`<button data-s="${l}" class="${view===l?'on':''}">${TSL[l]} <small>${l==='done'?items.filter(i=>i.done).length:CAPPED.includes(l)?openIn(l).length+'/'+CAP:openIn(l).length}</small></button>`).join(''):sg==='habits'?[['habits','🔥 Habits'],['travel','🧳 Travel']].map(([k,n])=>`<button data-s="${k}" class="${view===k?'on':''}">${n}</button>`).join(''):sg==='journal'?[['journal','📓 Journal'],['biz','📒 Business']].map(([k,n])=>`<button data-s="${k}" class="${view===k?'on':''}">${n}</button>`).join(''):'';
+ sb.innerHTML=sg==='tasks'?TSEG.map(l=>`<button data-s="${l}" class="${view===l?'on':''}">${TSL[l]} <small>${l==='done'?items.filter(i=>i.done).length:CAPPED.includes(l)?openIn(l).length+'/'+CAP:openIn(l).length}</small></button>`).join(''):sg==='habits'?[['habits','🔥 Habits'],['travel','🧳 Travel']].map(([k,n])=>`<button data-s="${k}" class="${view===k?'on':''}">${n}</button>`).join(''):sg==='journal'?[['journal','📓 Quick capture'],['biz','📒 Business']].map(([k,n])=>`<button data-s="${k}" class="${view===k?'on':''}">${n}</button>`).join(''):'';
  const so=sb.querySelector('.on');if(so&&(so.offsetLeft<sb.scrollLeft||so.offsetLeft+so.offsetWidth>sb.scrollLeft+sb.clientWidth))sb.scrollLeft=so.offsetLeft-12;
  const tf=$('#tagFilter').value;
  let L=hv?[]:view==='done'?items.filter(i=>i.done):openIn(view);
@@ -227,7 +228,7 @@ function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote()}
 $('#quote').addEventListener('click',nextQuote);$('#quote').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();nextQuote()}});
 function greet(){const d=new Date(),h=d.getHours();$('#greet').textContent=(h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', sir';
  $('#dateLine').innerHTML=esc(d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}))+'<span class="tagl"> · One mind. One target.</span>'}
-const APPV='v82';$('#appVer').textContent=APPV;greet();showQuote();
+const APPV='v83';$('#appVer').textContent=APPV;greet();showQuote();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 render();

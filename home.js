@@ -4,9 +4,9 @@ function hmGo(v){view=v;render();scrollTo(0,0)}
 function renderHome(){const el=$('#home'),t=dAgo(0),mon=t.slice(0,7);
  if(!el.dataset.init){el.dataset.init=1;el.innerHTML=`
  <div class="hstat" id="hStats"></div>
- <div class="hcard hm" style="--c:#ff7ad9"><div class="hmh"><b>📓 Journal</b><span id="hjMeta"></span></div>
+ <div class="hcard hm" style="--c:#ff7ad9"><div class="hmh"><b>📓 Quick capture</b><span id="hjMeta"></span></div>
   <form id="hjForm"><textarea id="hjText" rows="3" placeholder="Quick capture a thought… (auto-stamped)"></textarea>
-  <div class="hmrow"><button class="primary" id="hjSave">Save</button><button type="button" class="hmgo" data-go="journal">Open Journal ›</button></div></form></div>
+  <div class="hmrow"><button class="primary" id="hjSave">Save</button><button type="button" class="hmgo" data-go="journal">Open Quick capture ›</button></div></form></div>
  <div class="hcard hm" style="--c:#5F7BFF"><div class="hmh"><b>◎ Focus</b><span id="htMeta"></span></div><ul id="htList"></ul>
   <button type="button" class="hmgo full" data-go="focus">Open Focus ›</button></div>
  <div class="hcard hm" id="hhCard" style="--c:#FFB83F"><div class="hmh"><b>🔥 Habits &amp; Travel</b><span id="hhMeta"></span></div><div id="hhTrav"></div><div id="hh7"></div><div class="hmticks" id="hhTicks"></div>

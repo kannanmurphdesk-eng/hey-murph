@@ -22,7 +22,7 @@ function rvExec(e,dest){if(dest!=='notes'){if(!canIn(dest))return false;const t=
  else e.exec={dest,at:Date.now()};if(e.stage!=='processed'){e.stage='processed';e.processedAt=Date.now()}jsave();RV.stats.executed++;toast('Sent to '+DEST[dest]);return true}
 function rvCommit(e){const t=$('#rvText'),es=$('#rvEss');if(!e||!t)return;e.text=t.value.trim()||e.text;e.essence=es.value.trim();jsave()}
 const execBtns=id=>`<div class="jrow rvx">${Object.keys(DEST).filter(d=>d!=='next'&&d!=='radar').map(d=>`<button data-r="x-${d}" data-id="${id}" class="d-${d}">→ ${DEST[d]}</button>`).join('')}</div>`;
-function rvDraw(){const e=rvCur(),N=RV.q.length,b=$('#rvBody');let h=`<div class="rvtop"><div class="rvh">Journal review</div><button data-r="close" class="x" aria-label="Close">✕</button></div>`;
+function rvDraw(){const e=rvCur(),N=RV.q.length,b=$('#rvBody');let h=`<div class="rvtop"><div class="rvh">Quick capture review</div><button data-r="close" class="x" aria-label="Close">✕</button></div>`;
  if(e){const pos=RV.i+1;h+=`<div class="rvprog"><span>Record ${pos} of ${N}</span><div class="rvbar"><i style="width:${Math.round(RV.i/N*100)}%"></i></div></div>
  <div class="jm"><span class="jt">${jday(e.created)} ${jtime(e.created)}</span>${e.type?`<span class="jty">${e.type}</span>`:''}<span class="lvl" id="rvLvl"></span><span class="mut">${daysSince(e.created)}d old</span></div>
  <div class="jrow" style="margin-top:8px"><button data-r="b"><b>B</b> Bold</button><button data-r="h"><mark>H</mark> Highlight</button><button data-r="edit">Open editor</button></div>
@@ -47,7 +47,7 @@ $('#rvBody').addEventListener('click',ev=>{const b=ev.target.closest('[data-r]')
  if(r==='finish')return rvFinish();
  if(r==='skip'){rvCommit(e);RV.stats.skipped++;return rvNext()}
  if(r==='proc'){rvCommit(e);e.stage='processed';e.processedAt=Date.now();jsave();RV.stats.processed++;return rvNext()}
- if(r==='del'){if(!confirm('Delete this journal entry?'))return;J=J.filter(x=>x!==e);jsave();RV.stats.deleted++;RV.q.splice(RV.i,1);RV.i--;return rvNext()}
+ if(r==='del'){if(!confirm('Delete this Quick capture entry?'))return;J=J.filter(x=>x!==e);jsave();RV.stats.deleted++;RV.q.splice(RV.i,1);RV.i--;return rvNext()}
  if(r.startsWith('x-')){const x=J.find(y=>y.id===b.dataset.id);if(!x)return;if(x===e)rvCommit(e);const wasRec=x.stage!=='processed';if(!rvExec(x,r.slice(2)))return;if(wasRec)RV.stats.processed++;if(x===e)rvNext();else rvDraw()}});
 $('#rvSheet').addEventListener('cancel',()=>{const e=rvCur();if(e)rvCommit(e);RV=null;setTimeout(render,0)});
 rvJ.onclick=rvStart;

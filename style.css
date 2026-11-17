@@ -405,15 +405,22 @@ li.mc1::before,li.mc1::after{display:none!important}li.mc1:last-child{border-bot
 .srnx.hint{opacity:.5;font-style:italic}
 #eStage{margin:6px 0}
 
-/* v82 business journal */
+/* v82/v83 business journal */
 #biz{padding-bottom:20px}
-.bizh{font-weight:700;margin:4px 2px 12px;font-size:16px}
-.bizh small{font-weight:500;color:var(--mut);margin-left:8px;font-size:12px}
+.bizh{font-weight:700;margin:4px 2px 10px;font-size:16px}
+.bjadd{display:flex;gap:8px;align-items:center;margin:0 0 12px}
+.bjadd #bjDate{width:auto;flex:none}
+.bjadd #bjText{flex:1;min-width:0}
+.bjadd button{flex:none;white-space:nowrap}
 .bize{display:flex;flex-wrap:wrap;align-items:flex-start;gap:6px 8px;padding:10px 12px;margin:6px 0;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03)}
 .bize.done{opacity:.62}
 .bize.done .bizt{text-decoration:line-through}
-.bizchk{color:var(--mut);flex:none;width:1.2em}
-.bizt{flex:1;min-width:0;font-weight:600}
+.bizchk{flex:none;margin:2px 0 0;display:flex;align-items:center}
+.bizchk input{width:18px;height:18px;accent-color:var(--acc)}
+.bizt{flex:1;min-width:0;font-weight:600;cursor:text}
 .bizm{flex:0 0 100%;display:flex;gap:6px;flex-wrap:wrap}
-.bizn{margin:8px 10px;color:var(--mut);font-style:italic}
+.bizm select{width:auto;flex:1;min-width:0;font-size:12px;font-weight:600;padding:6px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--c,#8aa0c8) 45%,transparent);background:rgba(255,255,255,.04);color:var(--fg)}
+.bjedit{flex:1;min-width:0;font-weight:600;font-size:15px}
+.bizn{margin:8px 10px;color:var(--mut);font-style:italic;display:flex;gap:6px;align-items:flex-start}
 .bizn:before{content:"> ";font-style:normal;opacity:.7}
+.bizn .bizt{font-weight:400}

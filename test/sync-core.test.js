@@ -29,12 +29,21 @@ test('mergeDoc keeps businessJournal and does not strip it',()=>{
  const e=[{date:'2026-11-17',text:'Share Atmos 51',tag:'',status:'Yet to start',done:false}];
  const L={items:[],journal:[],habits:{habits:[],updatedAt:0},businessJournal:e,updatedAt:10};
  const R={items:[],journal:[],habits:{habits:[],updatedAt:0},updatedAt:5};
- const m=C.mergeDoc(L,R);assert.deepEqual(m.businessJournal,e);
+ const m=C.mergeDoc(L,R);assert.equal(m.businessJournal.length,1);assert.equal(m.businessJournal[0].text,'Share Atmos 51');assert.ok(m.businessJournal[0].id);
  const m2=C.mergeDoc({items:[],journal:[],habits:{habits:[],updatedAt:0}}, {items:[],journal:[],businessJournal:e,updatedAt:20});
- assert.deepEqual(m2.businessJournal,e);
- const other=[{date:'2026-11-14',text:'Older',tag:'',status:'Yet to start',done:false}];
- const m3=C.mergeDoc({items:[],journal:[],businessJournal:e,updatedAt:1},{items:[],journal:[],businessJournal:other,updatedAt:9});
- assert.deepEqual(m3.businessJournal,other);
+ assert.equal(m2.businessJournal[0].text,'Share Atmos 51');
  assert.ok(!C.sameDoc(m,Object.assign({},m,{businessJournal:[]})));
  assert.ok(C.sameDoc(m,C.mergeDoc(m,m)));
+});
+test('legacy businessJournal rows get the same stable id and local edits are kept',()=>{
+ const seed={date:'2026-11-17',text:'Share Atmos 51',tag:'',status:'Yet to start',done:false};
+ const a=C.normBiz([seed])[0],b=C.normBiz([seed])[0];
+ assert.equal(a.id,b.id);
+ const local=[{...a,status:'In progress',updatedAt:50}];
+ const remote=[{...b,updatedAt:10}];
+ const m=C.mergeDoc({items:[],journal:[],businessJournal:local,updatedAt:0},{items:[],journal:[],businessJournal:remote,updatedAt:99});
+ assert.equal(m.businessJournal.length,1);assert.equal(m.businessJournal[0].status,'In progress');
+ const newer=C.mergeDoc({items:[],journal:[],businessJournal:[{...a,status:'In progress',updatedAt:20}]},{items:[],journal:[],businessJournal:[{...a,status:'Done',done:true,updatedAt:40}]});
+ assert.equal(newer.businessJournal[0].status,'Done');
+ assert.equal(C.mergeDoc({items:[],journal:[],habits:{habits:[],updatedAt:0},businessJournal:local},{items:[],journal:[],habits:{habits:[],updatedAt:1}}).businessJournal[0].status,'In progress');
 });
