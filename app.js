@@ -9,7 +9,7 @@ const dmon=d=>d?new Date(d.slice(0,7)+'-01T00:00').toLocaleString('en-US',{month
 let fview='po';
 const VIS=['focus','todo','cold'];
 let items=load(),view='focus',tview='focus',hview='habits',jview='journal';
-const SEG=v=>v==='customers'?'customers':v==='habits'?'habits':'tasks';
+const SEG=v=>v==='customers'?'customers':(v==='habits'||v==='travel')?'habits':'tasks';
 const TSEG=['focus','todo','cold'],TSL={focus:'Focus',todo:'To do',cold:'Cold Storage'};
 const $=s=>document.querySelector(s);
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
@@ -32,6 +32,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 // v83: editable Business Journal; original journal sub-tab labelled Quick capture.
 // v84: UI shows only Focus, To do, Cold storage and a minimal Habits tick/log. Hidden lists and journals stay in the data and sync.
 // v85: Focus type/status dropdowns; Customers (Customer Universe) tab restored.
+// v86: Travel tab restored (Habits › Travel), as before v84.
 const STAGES=['Cold calls','Customer inquiry / Product pitch','Data sheet submission','Technical review','Quote submission','Purchase process','Negotiations','PO issuance','Delivery','Installation','Payment'];
 const stageIdx=s=>STAGES.indexOf(String(s||'').trim());
 const stageListOf=s=>{const i=stageIdx(s);return i<0?null:i<=7?'po':i<=9?'del':'pay'};
@@ -74,14 +75,15 @@ const todoRank=i=>(isOver(i)?0:10)+(i.important&&i.urgent?0:i.important?1:i.urge
 const todoSort=(a,b)=>todoRank(a)-todoRank(b)||(a.due||'9999').localeCompare(b.due||'9999')||a.created-b.created;
 function render(){
  legacyMove();v65mig();v73merge();v79drop();if(typeof fmigrate==='function')fmigrate();
- if(!VIS.includes(view)&&view!=='habits'&&view!=='customers')view='focus';
+ if(!VIS.includes(view)&&view!=='habits'&&view!=='travel'&&view!=='customers')view='focus';
  const flv=false;
  const sg=SEG(view);if(sg==='tasks')tview=view;else if(sg==='habits')hview=view;
  const hv=sg!=='tasks';
- $('#home').hidden=true;$('#journal').hidden=true;$('#biz').hidden=true;$('#travel').hidden=true;$('#flow').hidden=true;
- $('#habits').hidden=view!=='habits';['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();
- const fv=CAPPED.includes(view);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
- const sb=$('#sub');sb.hidden=true;sb.innerHTML='';
+ $('#home').hidden=true;$('#journal').hidden=true;$('#biz').hidden=true;$('#flow').hidden=true;
+ $('#habits').hidden=view!=='habits';$('#travel').hidden=view!=='travel';if(view==='travel'&&typeof renderTravel==='function')renderTravel();['#filters','#count','#list'].forEach(q=>$(q).hidden=hv);if(view==='habits')renderHabits();
+ const fv=CAPPED.includes(view);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===(sg==='habits'?'habits':view)));
+ const sb=$('#sub');sb.hidden=sg!=='habits';sb.classList.toggle('two',sg==='habits');
+ sb.innerHTML=sg==='habits'?[['habits','🔥 Habits'],['travel','🧳 Travel']].map(([k,n])=>`<button data-s="${k}" class="${view===k?'on':''}">${n}</button>`).join(''):'';
  const so=sb.querySelector('.on');if(so&&(so.offsetLeft<sb.scrollLeft||so.offsetLeft+so.offsetWidth>sb.scrollLeft+sb.clientWidth))sb.scrollLeft=so.offsetLeft-12;
  const tf=$('#tagFilter').value;
  let L=hv?[]:view==='done'?items.filter(i=>i.done):openIn(view);
@@ -125,7 +127,7 @@ function renderTodo(){const L=openIn('todo').sort(todoSort);$('#list').innerHTML
 $('#list').addEventListener('click',e=>{if(e.target.closest('[data-ff]')){e.stopPropagation();return}const a=e.target.closest('[data-a]');if(!a)return;const id=a.dataset.tid||a.closest('li').dataset.id;
  if(a.dataset.a==='po'){return}if(a.dataset.a==='done')toggleDone(id);else if(a.dataset.a==='move')move(id);else if(a.dataset.a==='insight')openInsight(id);else openEdit(id)});
 $('#list').addEventListener('change',e=>{const s=e.target.closest('[data-mv]');if(s){move(s.closest('li').dataset.id,s.value);return}const f=e.target.closest('[data-ff]'),row=e.target.closest('[data-id]');if(f&&row){const p={};p[f.dataset.ff]=f.value;patchFocus(row.dataset.id,p)}});
-$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){view=b.dataset.v;render();scrollTo(0,0)}});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){view=b.dataset.v==='habits'?hview:b.dataset.v;render();scrollTo(0,0)}});
 $('#sub').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(b){view=b.dataset.s;render()}});
 $('#tagFilter').onchange=render;
 $('#tagFilter').innerHTML+=TAGS.map(t=>`<option>${t}</option>`).join('');
@@ -241,7 +243,7 @@ function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote()}
 $('#quote').addEventListener('click',nextQuote);$('#quote').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();nextQuote()}});
 function greet(){const d=new Date(),h=d.getHours();$('#greet').textContent=(h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', sir';
  $('#dateLine').innerHTML=esc(d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}))+'<span class="tagl"> · One mind. One target.</span>'}
-const APPV='v85';$('#appVer').textContent=APPV;greet();showQuote();
+const APPV='v86';$('#appVer').textContent=APPV;greet();showQuote();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 render();
